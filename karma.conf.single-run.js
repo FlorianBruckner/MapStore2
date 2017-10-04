@@ -3,13 +3,12 @@ module.exports = function karmaConfig(config) {
     config.set({
 
         browsers: [ 'Chrome' ],
-
+        browserNoActivityTimeout: 30000,
         singleRun: true,
 
         frameworks: [ 'mocha' ],
 
         files: [
-            'web/client/libs/Cesium/Build/Cesium/Cesium.js',
             'tests-travis.webpack.js',
             { pattern: './web/client/test-resources/**/*', included: false },
             { pattern: './web/client/translations/**/*', included: false }

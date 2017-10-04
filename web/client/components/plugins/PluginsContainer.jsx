@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /*
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
@@ -12,6 +13,7 @@ const PluginsUtils = require('../../utils/PluginsUtils');
 const assign = require('object-assign');
 
 const {get} = require('lodash');
+
 /**
  * Container for plugins. Get's the plugin definitions (`plugins`) and configuration (`pluginsConfig`)
  * to render the configured plugins.
@@ -26,60 +28,71 @@ const {get} = require('lodash');
  * @prop {object} pluginsState a piece of state to use. usually controls.
  * @prop {object} monitoredState the piece of state to monitor Used as state to get plugins descriptor.
  */
-const PluginsContainer = React.createClass({
-    propTypes: {
-        mode: React.PropTypes.string,
-        params: React.PropTypes.object,
-        plugins: React.PropTypes.object,
-        pluginsConfig: React.PropTypes.object,
-        id: React.PropTypes.string,
-        className: React.PropTypes.string,
-        style: React.PropTypes.object,
-        pluginsState: React.PropTypes.object,
-        monitoredState: React.PropTypes.object,
-        defaultMode: React.PropTypes.string
-    },
-    getDefaultProps() {
-        return {
-            mode: 'desktop',
-            defaultMode: 'desktop',
-            params: {},
-            plugins: {},
-            pluginsConfig: {},
-            id: "plugins-container",
-            className: "plugins-container",
-            style: {},
-            pluginsState: {},
-            monitoredState: {}
-        };
-    },
-    getInitialState() {
-        return {
-            loadedPlugins: {}
-        };
-    },
+class PluginsContainer extends React.Component {
+    static propTypes = {
+        mode: PropTypes.string,
+        params: PropTypes.object,
+        plugins: PropTypes.object,
+        pluginsConfig: PropTypes.object,
+        id: PropTypes.string,
+        className: PropTypes.string,
+        style: PropTypes.object,
+        pluginsState: PropTypes.object,
+        monitoredState: PropTypes.object,
+        defaultMode: PropTypes.string
+    };
+
+    static contextTypes = {
+        store: PropTypes.object
+    };
+
+    static defaultProps = {
+        mode: 'desktop',
+        defaultMode: 'desktop',
+        params: {},
+        plugins: {},
+        pluginsConfig: {},
+        id: "plugins-container",
+        className: "plugins-container",
+        style: {},
+        pluginsState: {},
+        monitoredState: {}
+    };
+
+    state = {
+        loadedPlugins: {}
+    };
+
     componentWillMount() {
         this.loadPlugins(this.props.pluginsState);
-    },
+    }
+
     componentWillReceiveProps(newProps) {
-        this.loadPlugins(newProps.pluginsState);
-    },
-    getState(path) {
-        return get(this.props.monitoredState, path) || get(this.props.params, path);
-    },
-    getPluginDescriptor(plugin) {
+        this.loadPlugins(newProps.pluginsState, newProps);
+    }
+
+    getState = (path, newProps) => {
+        let props = newProps || this.props;
+        return get(props.monitoredState, path) || get(this.props.params, path) || this.context[path];
+    };
+
+    getPluginDescriptor = (plugin) => {
         return PluginsUtils.getPluginDescriptor(this.getState, this.props.plugins,
                     this.props.pluginsConfig[this.props.mode], plugin, this.state.loadedPlugins);
-    },
-    renderPlugins(plugins) {
+    };
+
+    renderPlugins = (plugins) => {
         return plugins
-            .filter((Plugin) => !PluginsUtils.handleExpression(this.props.pluginsState, this.props.plugins && this.props.plugins.requires, Plugin.hide))
+            .filter((Plugin) => !PluginsUtils.handleExpression(this.getState, this.props.plugins && this.props.plugins.requires, Plugin.hide))
             .map(this.getPluginDescriptor)
+            .filter(plugin => PluginsUtils.filterDisabledPlugins({plugin: plugin && plugin.impl || plugin}, this.getState))
             .filter((Plugin) => Plugin && !Plugin.impl.loadPlugin)
+            .filter(plugin => PluginsUtils.filterDisabledPlugins({plugin: plugin && plugin.impl || plugin}, this.getState))
             .filter(this.filterPlugins)
             .map((Plugin) => <Plugin.impl key={Plugin.id}
                 {...this.props.params} {...Plugin.cfg} pluginCfg={Plugin.cfg} items={Plugin.items}/>);
-    },
+    };
+
     render() {
         if (this.props.pluginsConfig) {
             return (
@@ -91,15 +104,19 @@ const PluginsContainer = React.createClass({
             );
         }
         return null;
-    },
-    filterPlugins(Plugin) {
+    }
+
+    filterPlugins = (Plugin) => {
         const container = PluginsUtils.getMorePrioritizedContainer(Plugin.impl, this.props.pluginsConfig[this.props.mode], 0);
         return !container.plugin || !container.plugin.impl || container.plugin.impl.doNotHide;
-    },
-    loadPlugins(state) {
+    };
+
+    loadPlugins = (state, newProps) => {
+        const getState = (path) => this.getState(path, newProps);
         (this.props.pluginsConfig && this.props.pluginsConfig[this.props.mode] || [])
-            .map((plugin) => PluginsUtils.getPluginDescriptor(this.getState, this.props.plugins,
+            .map((plugin) => PluginsUtils.getPluginDescriptor(getState, this.props.plugins,
                 this.props.pluginsConfig[this.props.mode], plugin, this.state.loadedPlugins))
+            .filter(plugin => PluginsUtils.filterDisabledPlugins({plugin: plugin && plugin.impl || plugin}, getState))
             .filter((plugin) => plugin && plugin.impl.loadPlugin).forEach((plugin) => {
                 if (!this.state.loadedPlugins[plugin.name]) {
                     if (!plugin.impl.enabler || plugin.impl.enabler(state)) {
@@ -107,12 +124,13 @@ const PluginsContainer = React.createClass({
                     }
                 }
             });
-    },
-    loadPlugin(plugin, impl) {
+    };
+
+    loadPlugin = (plugin, impl) => {
         this.setState({
             loadedPlugins: assign({}, this.state.loadedPlugins, {[plugin.name]: impl})
         });
-    }
-});
+    };
+}
 
 module.exports = PluginsContainer;

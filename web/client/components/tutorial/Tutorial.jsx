@@ -1,19 +1,20 @@
-/**
+/*
  * Copyright 2017, GeoSolutions Sas.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  */
-
+const PropTypes = require('prop-types');
 const React = require('react');
 const Joyride = require('react-joyride').default;
 const I18N = require('../I18N/I18N');
+const assign = require('object-assign');
 
 require('react-joyride/lib/react-joyride-compiled.css');
 require('./style/tutorial.css');
 
-const introStyle = {
+const defaultIntroStyle = {
     backgroundColor: 'transparent',
     color: '#fff',
     mainColor: '#fff',
@@ -31,8 +32,7 @@ const introStyle = {
         padding: 10
     },
     button: {
-        color: '#fff',
-        backgroundColor: '#078aa3'
+        color: '#fff'
     },
     close: {
         display: 'none'
@@ -42,162 +42,138 @@ const introStyle = {
     }
 };
 
-const errorStyle = {
-    mainColor: '#888',
-    backgroundColor: 'transparent',
-    header: {
-        fontFamily: 'Georgia, serif',
-        fontSize: '1.5em',
-        borderBottom: '1px solid #dd0733',
-        backgroundColor: '#fff',
-        padding: 10
-    },
-    main: {
-        fontSize: '0.9em',
-        backgroundColor: '#fff',
-        padding: 10
-    },
-    footer: {
-        backgroundColor: '#fff',
-        padding: 10
-    },
-    button: {
-        color: '#fff',
-        backgroundColor: '#dd0733'
-    },
-    skip: {
-        color: '#AAA'
-    },
-    close: {
-        margin: 10
-    }
-};
+class Tutorial extends React.Component {
+    static propTypes = {
+        toggle: PropTypes.bool,
+        status: PropTypes.string,
+        preset: PropTypes.string,
+        presetList: PropTypes.object,
+        intro: PropTypes.bool,
+        introPosition: PropTypes.number,
+        showCheckbox: PropTypes.bool,
+        defaultStep: PropTypes.object,
+        introStyle: PropTypes.object,
+        tourAction: PropTypes.string,
+        stepIndex: PropTypes.number,
+        steps: PropTypes.array,
+        run: PropTypes.bool,
+        autoStart: PropTypes.bool,
+        keyboardNavigation: PropTypes.bool,
+        resizeDebounce: PropTypes.bool,
+        resizeDebounceDelay: PropTypes.number,
+        holePadding: PropTypes.number,
+        scrollOffset: PropTypes.number,
+        scrollToSteps: PropTypes.bool,
+        scrollToFirstStep: PropTypes.bool,
+        showBackButton: PropTypes.bool,
+        showOverlay: PropTypes.bool,
+        allowClicksThruHole: PropTypes.bool,
+        showSkipButton: PropTypes.bool,
+        showStepsProgress: PropTypes.bool,
+        tooltipOffset: PropTypes.number,
+        disableOverlay: PropTypes.bool,
+        actions: PropTypes.object
+    };
 
-const Tutorial = React.createClass({
-    propTypes: {
-        toggle: React.PropTypes.bool,
-        status: React.PropTypes.string,
-        preset: React.PropTypes.string,
-        presetList: React.PropTypes.object,
-        intro: React.PropTypes.bool,
-        introPosition: React.PropTypes.number,
-        rawSteps: React.PropTypes.array,
-        nextLabel: React.PropTypes.string,
-        showCheckbox: React.PropTypes.bool,
-        defaultStep: React.PropTypes.object,
-        introStyle: React.PropTypes.object,
-        error: React.PropTypes.object,
+    static defaultProps = {
+        toggle: false,
+        status: 'run',
+        preset: 'default_tutorial',
+        presetList: {},
+        introPosition: (window.innerHeight - 348) / 2,
+        showCheckbox: true,
+        defaultStep: {
+            title: '',
+            text: '',
+            position: 'bottom',
+            type: 'click'
+        },
+        introStyle: defaultIntroStyle,
+        tourAction: 'next',
+        stepIndex: 0,
+        steps: [],
+        run: true,
+        autoStart: true,
+        keyboardNavigation: true,
+        resizeDebounce: false,
+        resizeDebounceDelay: 200,
+        holePadding: 0,
+        scrollOffset: 20,
+        scrollToSteps: true,
+        scrollToFirstStep: true,
+        showBackButton: true,
+        showOverlay: true,
+        allowClicksThruHole: true,
+        showSkipButton: true,
+        showStepsProgress: false,
+        tooltipOffset: 10,
+        disableOverlay: false,
+        actions: {
+            onSetup: () => {},
+            onStart: () => {},
+            onUpdate: () => {},
+            onDisable: () => {},
+            onReset: () => {},
+            onClose: () => {}
+        }
+    };
 
-        steps: React.PropTypes.array,
-        stepIndex: React.PropTypes.number,
-        run: React.PropTypes.bool,
-        autoStart: React.PropTypes.bool,
-        keyboardNavigation: React.PropTypes.bool,
-        resizeDebounce: React.PropTypes.bool,
-        resizeDebounceDelay: React.PropTypes.number,
-        holePadding: React.PropTypes.number,
-        scrollOffset: React.PropTypes.number,
-        scrollToSteps: React.PropTypes.bool,
-        scrollToFirstStep: React.PropTypes.bool,
-        showBackButton: React.PropTypes.bool,
-        showOverlay: React.PropTypes.bool,
-        allowClicksThruHole: React.PropTypes.bool,
-        showSkipButton: React.PropTypes.bool,
-        showStepsProgress: React.PropTypes.bool,
-        tooltipOffset: React.PropTypes.number,
-        type: React.PropTypes.string,
-        disableOverlay: React.PropTypes.bool,
-        debug: React.PropTypes.bool,
-
-        actions: React.PropTypes.object
-    },
-    getDefaultProps() {
-        return {
-            toggle: false,
-            status: 'run',
-            preset: 'map',
-            presetList: {},
-            intro: true,
-            introPosition: (window.innerHeight - 348) / 2,
-            rawSteps: [],
-            nextLabel: 'next',
-            showCheckbox: true,
-            defaultStep: {
-                title: '',
-                text: '',
-                position: 'bottom',
-                type: 'click',
-                allowClicksThruHole: true
-            },
-            introStyle: introStyle,
-            error: {
-                style: errorStyle,
-                text: <I18N.Message msgId="tutorial.error"/>
-            },
-
-            steps: [],
-            stepIndex: 0,
-            run: true,
-            autoStart: true,
-            keyboardNavigation: true,
-            resizeDebounce: false,
-            resizeDebounceDelay: 200,
-            holePadding: 0,
-            scrollOffset: 20,
-            scrollToSteps: true,
-            scrollToFirstStep: true,
-            showBackButton: true,
-            showOverlay: true,
-            allowClicksThruHole: false,
-            showSkipButton: false,
-            showStepsProgress: true,
-            tooltipOffset: 10,
-            type: 'continuous',
-            disableOverlay: false,
-            debug: false,
-
-            actions: {
-                onSetup: () => {},
-                onStart: () => {},
-                onUpdate: () => {},
-                onDisable: () => {},
-                onReset: () => {},
-                onClose: () => {}
-            }
-        };
-    },
     componentWillMount() {
-        let rawSteps = this.props.rawSteps.length > 0 ? this.props.rawSteps : this.props.presetList[this.props.preset] || [];
+        let defaultSteps = this.props.presetList[this.props.preset] || [];
         let checkbox = this.props.showCheckbox ? <div id="tutorial-intro-checkbox-container"><input type="checkbox" id="tutorial-intro-checkbox" className="tutorial-tooltip-intro-checkbox" onChange={this.props.actions.onDisable}/><span><I18N.Message msgId={"tutorial.checkbox"}/></span></div> : <div id="tutorial-intro-checkbox-container"/>;
-        this.props.actions.onSetup(rawSteps, this.props.introStyle, checkbox, this.props.defaultStep);
-    },
+        this.props.actions.onSetup('default', defaultSteps, this.props.introStyle, checkbox, this.props.defaultStep, assign({}, this.props.presetList, {default_tutorial: defaultSteps}));
+    }
+
     componentWillUpdate(newProps) {
         if (this.props.steps.length > 0) {
-            if (!this.props.toggle && newProps.toggle
-            || this.props.intro && !newProps.intro && newProps.status === 'run'
-            || this.props.status === 'run' && newProps.status === 'error'
-            || this.props.status === 'error' && newProps.status === 'error') {
+            if (!this.props.toggle && newProps.toggle) {
                 this.props.actions.onStart();
-                this.joyride.reset(true);
+            } else if (this.props.status === 'run' && newProps.status === 'error'
+            || this.props.status === 'error' && newProps.status === 'error') {
+
+                const index = this.checkFirstValidStep(newProps.stepIndex, newProps.tourAction);
+
+                if (index === -1) {
+                    this.closeTour();
+                } else {
+                    this.joyride.setState({
+                        index,
+                        isRunning: true,
+                        shouldRedraw: true,
+                        shouldRenderTooltip: true
+                    });
+                    this.props.actions.onStart();
+                }
+
             } else if (this.props.status === 'run' && newProps.status === 'close') {
-                this.props.actions.onClose();
+                this.closeTour();
             }
         }
-    },
+    }
+
     componentWillUnmount() {
         this.props.actions.onClose();
         this.props.actions.onReset();
-    },
-    onTour(tour) {
-        if (this.props.steps.length > 0 && tour && tour.type && tour.type.split(':')[1] !== 'before') {
-            this.props.actions.onUpdate(tour, this.props.steps, this.props.error);
+    }
+
+    onTour = (tour) => {
+        if (this.props.steps.length > 0 && tour && tour.type) {
+            const type = tour.type.split(':');
+            if (type[0] !== 'tooltip' && type[1] === 'before'
+            || tour.action === 'start'
+            || type[1] === 'target_not_found'
+            || tour.type === 'finished') {
+                this.props.actions.onUpdate(tour, this.props.steps);
+
+            }
         }
-    },
+    };
+
     render() {
         let joy;
         if (this.props.steps.length > 0) {
-            joy = (
-                <Joyride
+            joy =
+                (<Joyride
                     ref={c => (this.joyride = c)}
                     steps={this.props.steps}
                     stepIndex={this.props.stepIndex}
@@ -208,7 +184,7 @@ const Tutorial = React.createClass({
                         back: <I18N.Message msgId="tutorial.back"/>,
                         close: <I18N.Message msgId="tutorial.close"/>,
                         last: <I18N.Message msgId="tutorial.last"/>,
-                        next: <I18N.Message msgId={'tutorial.' + this.props.nextLabel}/>,
+                        next: <I18N.Message msgId={'tutorial.next'}/>,
                         skip: <I18N.Message msgId="tutorial.skip"/>
                     }}
                     resizeDebounce={this.props.resizeDebounce}
@@ -223,24 +199,58 @@ const Tutorial = React.createClass({
                     showSkipButton={this.props.showSkipButton}
                     showStepsProgress={this.props.showStepsProgress}
                     tooltipOffset={this.props.tooltipOffset}
-                    type={this.props.type}
                     disableOverlay={this.props.disableOverlay}
-                    debug={this.props.debug}
+                    type={'continuous'}
+                    debug={false}
                     callback={this.onTour}
-                />
-            );
+                />)
+            ;
         } else {
-            joy = (<div className="tutorial-joyride-placeholder"></div>);
+            joy = <div className="tutorial-joyride-placeholder" />;
         }
         return (
             <div>
                 {joy}
                 <div id="intro-tutorial" className="tutorial-presentation-position" style={{top: this.props.introPosition}}></div>
-                <div id="error-tutorial" className="tutorial-presentation-position" style={{top: this.props.introPosition + 200}}></div>
             </div>
 
         );
     }
-});
+
+    checkFirstValidStep(index, action) {
+        let steps = [].concat(this.props.steps);
+
+        if (action === 'back') {
+            steps = steps.slice(0, index);
+            steps.sort((a, b) => b.index - a.index);
+        } else {
+            steps = steps.slice(index + 1, this.props.steps.length);
+            steps.sort((a, b) => a.index - b.index);
+        }
+
+        steps = steps.filter((step) => {
+            return document.querySelector(step.selector);
+        }).map((step) => {
+            return step.index;
+        });
+
+        return steps && steps.length > 0 ? steps[0] : -1;
+    }
+
+    closeTour() {
+        const index = document.querySelector(this.props.steps[0].selector) ? 0 : this.checkFirstValidStep(0, 'next');
+
+        if (index === -1) {
+            this.props.actions.onReset();
+        } else {
+            this.joyride.setState({
+                index,
+                shouldRedraw: true
+            });
+        }
+
+        this.props.actions.onClose();
+    }
+}
 
 module.exports = Tutorial;

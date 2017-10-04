@@ -9,6 +9,8 @@ const expect = require('expect');
 const queryform = require('../queryform');
 
 const {featureCollection} = require('../../test-resources/featureCollectionZone.js');
+const {UPDATE_FILTER_FIELD_OPTIONS, SET_AUTOCOMPLETE_MODE, TOGGLE_AUTOCOMPLETE_MENU} = require('../../actions/queryform');
+const {END_DRAWING, CHANGE_DRAWING_STATUS} = require('../../actions/draw');
 
 describe('Test the queryform reducer', () => {
 
@@ -75,11 +77,9 @@ describe('Test the queryform reducer', () => {
         expect(state.filterFields[1].value).toBe(null);
         expect(state.filterFields[1].exception).toBe(null);
     });
-
-    it('Remove an existing filter field', () => {
+    it('Add a new filter field', () => {
         let testAction = {
-            type: 'REMOVE_FILTER_FIELD',
-            rowId: 100
+            type: 'ADD_FILTER_FIELD'
         };
 
         let initialState = {
@@ -88,12 +88,6 @@ describe('Test the queryform reducer', () => {
                 attribute: "attributeName",
                 operator: "=",
                 value: "attributeValue",
-                exception: null
-            }, {
-                rowId: 200,
-                attribute: "attributeName2",
-                operator: ">",
-                value: "attributeValue2",
                 exception: null
             }]
         };
@@ -101,37 +95,50 @@ describe('Test the queryform reducer', () => {
         let state = queryform(initialState, testAction);
         expect(state).toExist();
 
-        expect(state.filterFields.length).toBe(1);
+        expect(state.filterFields.length).toBe(2);
 
-        expect(state.filterFields[0].rowId).toBe(200);
-        expect(state.filterFields[0].attribute).toBe("attributeName2");
-        expect(state.filterFields[0].operator).toBe(">");
-        expect(state.filterFields[0].value).toBe("attributeValue2");
+        expect(state.filterFields[0].rowId).toBe(100);
+        expect(state.filterFields[0].attribute).toBe("attributeName");
+        expect(state.filterFields[0].operator).toBe("=");
+        expect(state.filterFields[0].value).toBe("attributeValue");
         expect(state.filterFields[0].exception).toBe(null);
+
+        expect(state.filterFields[1].rowId).toNotEqual(state.filterFields[0].rowId);
+        expect(state.filterFields[1].attribute).toBe(null);
+        expect(state.filterFields[1].operator).toBe("=");
+        expect(state.filterFields[1].value).toBe(null);
+        expect(state.filterFields[1].exception).toBe(null);
     });
 
     it('Update an existing filter field', () => {
-        let testAction = {
-            type: 'UPDATE_FILTER_FIELD',
-            rowId: 100,
-            fieldName: "attribute",
-            fieldValue: "attributeName1"
-        };
-
         let initialState = {
             filterFields: [{
                 rowId: 100,
                 attribute: "attributeName",
                 operator: "=",
                 value: "attributeValue",
-                exception: null
+                exception: null,
+                fieldOptions: {
+                    currentPage: 0
+                }
             }, {
                 rowId: 200,
                 attribute: "attributeName2",
                 operator: ">",
                 value: "attributeValue2",
-                exception: null
+                exception: null,
+                fieldOptions: {
+                    currentPage: 1
+                }
             }]
+        };
+
+        let testAction = {
+            type: 'UPDATE_FILTER_FIELD',
+            rowId: 100,
+            fieldName: "attribute",
+            fieldValue: "attributeName1",
+            fieldOptions: {currentPage: 1}
         };
 
         let state = queryform(initialState, testAction);
@@ -144,7 +151,8 @@ describe('Test the queryform reducer', () => {
             type: 'UPDATE_FILTER_FIELD',
             rowId: 100,
             fieldName: "operator",
-            fieldValue: "<"
+            fieldValue: "<",
+            fieldOptions: {currentPage: 1}
         };
 
         state = queryform(state, testAction);
@@ -158,7 +166,8 @@ describe('Test the queryform reducer', () => {
             type: 'UPDATE_FILTER_FIELD',
             rowId: 100,
             fieldName: "value",
-            fieldValue: "attributeValue1"
+            fieldValue: "attributeValue1",
+            fieldOptions: {currentPage: 1}
         };
 
         state = queryform(state, testAction);
@@ -170,6 +179,45 @@ describe('Test the queryform reducer', () => {
         expect(state.filterFields[0].value).toBe("attributeValue1");
     });
 
+    it('Update an existing filter field', () => {
+        let testAction = {
+            type: UPDATE_FILTER_FIELD_OPTIONS,
+            filterField: {
+                rowId: 100,
+                fieldName: "attributeName"
+            },
+            options: ["val1", "val2"],
+            valuesCount: 2
+        };
+        let initialState = {
+            filterFields: [{
+                rowId: 100,
+                attribute: "attributeName",
+                operator: "=",
+                fieldType: "string",
+                fieldName: "value",
+                exception: null,
+                fieldOptions: {
+                    currentPage: 0
+                }
+            }, {
+                rowId: 200,
+                attribute: "attributeName2",
+                operator: ">",
+                value: "attributeValue2",
+                exception: null,
+                fieldOptions: {
+                    currentPage: 1
+                }
+            }]
+        };
+        let state = queryform(initialState, testAction);
+        expect(state).toExist();
+        expect(state.filterFields.length).toBe(2);
+        expect(state.filterFields[0].attribute).toBe("attributeName");
+        expect(state.filterFields[0].options.attributeName.length).toBe(2);
+
+    });
     it('Update the exception for a filter field', () => {
         let testAction = {
             type: 'UPDATE_EXCEPTION_FIELD',
@@ -418,19 +466,102 @@ describe('Test the queryform reducer', () => {
         expect(state.showDetailsPanel).toEqual(true);
     });
 
+    it('test UPDATE_GEOMETRY', () => {
+        const geometry = {center: [0, 1], coordinates: []};
+        let testAction = {
+            type: "UPDATE_GEOMETRY",
+            geometry
+        };
+        const initialState = { spatialField: {geometry: {}} };
+        let state = queryform(initialState, testAction);
+        expect(state).toExist();
+        expect(state.spatialField.geometry).toEqual(geometry);
+    });
+
+    it('test CHANGE_SPATIAL_ATTRIBUTE', () => {
+        const attribute = "some value";
+        let testAction = {
+            type: "CHANGE_SPATIAL_ATTRIBUTE",
+            attribute
+        };
+        const initialState = { spatialField: {attribute: {}} };
+        let state = queryform(initialState, testAction);
+        expect(state).toExist();
+        expect(state.spatialField.attribute).toEqual(attribute);
+    });
+
+    it('test CHANGE_DRAWING_STATUS', () => {
+        const initialState = { toolbarEnabled: true };
+        const testAction1 = {
+            type: CHANGE_DRAWING_STATUS,
+            owner: "queryform",
+            status: "start"
+        };
+        const state = queryform(initialState, testAction1);
+        expect(state).toExist();
+        expect(state.toolbarEnabled).toBeFalsy();
+        const testAction2 = {
+            type: CHANGE_DRAWING_STATUS,
+            owner: "measure",
+            status: "start"
+        };
+        const state2 = queryform(initialState, testAction2);
+        expect(state2).toExist();
+        expect(state2.toolbarEnabled).toBeTruthy();
+    });
+
+    it('test END_DRAWING', () => {
+        const geometry = {center: [0, 1], coordinates: []};
+        const initialState = { toolbarEnabled: false, spatialField: {geometry: {}} };
+        const testAction1 = {
+            type: END_DRAWING,
+            owner: "queryform",
+            geometry
+        };
+        const state = queryform(initialState, testAction1);
+        expect(state).toExist();
+        expect(state.toolbarEnabled).toBeTruthy();
+        expect(state.spatialField.geometry).toBe(geometry);
+        const testAction2 = {
+            type: END_DRAWING,
+            owner: "measure",
+            status: "start"
+        };
+        const state2 = queryform(initialState, testAction2);
+        expect(state2).toExist();
+        expect(state2.toolbarEnabled).toBeFalsy();
+        expect(state2.spatialField.geometry).toEqual({});
+    });
+
+    it('test CHANGE_DWITHIN_VALUE', () => {
+        const initialState = { spatialField: {geometry: { distance: {}}} };
+        const distance = 123;
+        const testAction1 = {
+            type: "CHANGE_DWITHIN_VALUE",
+            distance
+        };
+        const state = queryform(initialState, testAction1);
+        expect(state).toExist();
+        expect(state.spatialField.geometry.distance).toBe(distance);
+    });
+
     it('Query Form Reset', () => {
         let testAction = {
             type: "QUERY_FORM_RESET"
         };
 
         const initialState = {
-            test: true
+            test: true,
+            spatialField: {
+                attribute: "GEOMETRY"
+            }
         };
 
         let state = queryform(initialState, testAction);
         expect(state).toExist();
 
         expect(state.test).toEqual(true);
+        expect(state.spatialField.attribute).toEqual("GEOMETRY");
     });
 
     it('Show Generated Filter', () => {
@@ -749,8 +880,47 @@ describe('Test the queryform reducer', () => {
         expect(state.simpleFilterFields).toExist();
         expect(state.simpleFilterFields.length).toBe(0);
     });
+    it('set autocomplete mode', () => {
+        let testAction = {
+            type: SET_AUTOCOMPLETE_MODE,
+            status: true
+        };
 
-    /*it('Open Zones Menu', () => {
+        let initialState = {
+            filterFields: [],
+            autocompleteEnabled: false
+        };
+
+        let state = queryform(initialState, testAction);
+        expect(state).toExist();
+
+        expect(state.autocompleteEnabled).toBe(true);
+
+    });
+    it('toggle autocomplete mode', () => {
+        let testAction = {
+            type: TOGGLE_AUTOCOMPLETE_MENU,
+            rowId: 100,
+            status: true
+        };
+
+        let initialState = {
+            filterFields: [{
+                rowId: 100,
+                openAutocompleteMenu: false
+            }],
+            openAutocompleteMenu: false
+        };
+
+        let state = queryform(initialState, testAction);
+        expect(state).toExist();
+
+        expect(state.filterFields[0].openAutocompleteMenu).toBe(true);
+
+    });
+
+
+    /* it('Open Zones Menu', () => {
         let testAction = {
             type: "OPEN_MENU",
             active: true,

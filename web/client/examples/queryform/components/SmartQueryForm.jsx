@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
@@ -26,6 +27,7 @@ const {
     removeGroupField,
     changeCascadingValue,
     expandAttributeFilterPanel,
+    selectViewportSpatialMethod,
     expandSpatialFilterPanel,
     selectSpatialMethod,
     selectSpatialOperation,
@@ -47,11 +49,11 @@ const {
 
 const assign = require('object-assign');
 
-const attributesSelector = (state) => (state.query.featureTypes["topp:states"] && state.query.featureTypes["topp:states"].attributes && state.query.data["topp:states"] &&
+const attributesSelector = (state) => state.query.featureTypes["topp:states"] && state.query.featureTypes["topp:states"].attributes && state.query.data["topp:states"] &&
         state.query.featureTypes["topp:states"].attributes.map((attribute) => {
             return assign({}, attribute, {values: state.query.data["topp:states"][attribute.attribute]});
         })
-    ) || [];  //   &&
+     || [];  //   &&
 
 // connecting a Dumb component to the store
 // makes it a smart component
@@ -66,6 +68,18 @@ const SmartQueryForm = connect((state) => {
         filterFields: state.queryform.filterFields,
         attributes: attributesSelector(state),
         spatialField: state.queryform.spatialField,
+        spatialOperations: [
+        {"id": "INTERSECTS", "name": "queryform.spatialfilter.operations.intersects"},
+        {"id": "BBOX", "name": "queryform.spatialfilter.operations.bbox"},
+        {"id": "CONTAINS", "name": "queryform.spatialfilter.operations.contains"},
+        {"id": "WITHIN", "name": "queryform.spatialfilter.operations.within"}
+        ],
+        spatialMethodOptions: [
+        {"id": "Viewport", "name": "queryform.spatialfilter.methods.viewport"},
+        {"id": "BBOX", "name": "queryform.spatialfilter.methods.box"},
+        {"id": "Circle", "name": "queryform.spatialfilter.methods.circle"},
+        {"id": "Polygon", "name": "queryform.spatialfilter.methods.poly"}
+    ],
         showDetailsPanel: state.queryform.showDetailsPanel,
         toolbarEnabled: state.queryform.toolbarEnabled,
         attributePanelExpanded: state.queryform.attributePanelExpanded,
@@ -94,6 +108,7 @@ const SmartQueryForm = connect((state) => {
             onSelectSpatialMethod: selectSpatialMethod,
             onSelectSpatialOperation: selectSpatialOperation,
             onChangeDrawingStatus: changeDrawingStatus,
+            onSelectViewportSpatialMethod: selectViewportSpatialMethod,
             onRemoveSpatialSelection: removeSpatialSelection,
             onShowSpatialSelectionDetails: showSpatialSelectionDetails,
             onEndDrawing: endDrawing,
@@ -116,12 +131,13 @@ module.exports = connect((state) => {
         locale: state.locale ? state.locale.current : null,
         localeError: state.locale && state.locale.loadingError ? state.locale.loadingError : undefined
     };
-})(React.createClass({
-    propTypes: {
-        messages: React.PropTypes.object,
-        locale: React.PropTypes.string,
-        localeError: React.PropTypes.string
-    },
+})(class extends React.Component {
+    static propTypes = {
+        messages: PropTypes.object,
+        locale: PropTypes.string,
+        localeError: PropTypes.string
+    };
+
     render() {
         return (
             <Localized messages={this.props.messages} locale={this.props.locale} loadingError={this.props.localeError}>
@@ -129,4 +145,4 @@ module.exports = connect((state) => {
             </Localized>
         );
     }
-}));
+});

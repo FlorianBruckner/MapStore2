@@ -27,13 +27,13 @@ const nestedService = {
 };
 const TEXT = "Dinagat Islands";
 const item = {
-      "type": "Feature",
-      "bbox": [125, 10, 126, 11],
-      "geometry": {
+    "type": "Feature",
+    "bbox": [125, 10, 126, 11],
+    "geometry": {
         "type": "Point",
         "coordinates": [125.6, 10.1]
-      },
-      "properties": {
+    },
+    "properties": {
         "name": TEXT
     },
     "__SERVICE__": {
@@ -73,27 +73,27 @@ describe('search Epics', () => {
         };
 
         store.dispatch( action );
-
-        setTimeout(() => {
-            let actions = store.getActions();
-            expect(actions.length).toBe(4);
-            expect(actions[1].type).toBe(TEXT_SEARCH_LOADING);
-            expect(actions[2].type).toBe(TEXT_SEARCH_RESULTS_LOADED);
-            expect(actions[3].type).toBe(TEXT_SEARCH_LOADING);
-            done();
-        }, 400);
+        store.subscribe(() => {
+            const actions = store.getActions();
+            if (actions.length === 4) {
+                expect(actions[1].type).toBe(TEXT_SEARCH_LOADING);
+                expect(actions[2].type).toBe(TEXT_SEARCH_RESULTS_LOADED);
+                expect(actions[3].type).toBe(TEXT_SEARCH_LOADING);
+                done();
+            }
+        });
     });
     it('produces the selectSearchItem epic', () => {
         let action = selectSearchItem({
-          "type": "Feature",
-          "bbox": [125, 10, 126, 11],
-          "geometry": {
-            "type": "Point",
-            "coordinates": [125.6, 10.1]
-          },
-          "properties": {
-            "name": "Dinagat Islands"
-          }
+            "type": "Feature",
+            "bbox": [125, 10, 126, 11],
+            "geometry": {
+                "type": "Point",
+                "coordinates": [125.6, 10.1]
+            },
+            "properties": {
+                "name": "Dinagat Islands"
+            }
         }, {
             size: {
                 width: 200,
@@ -146,11 +146,11 @@ describe('search Epics', () => {
         expect(actions.filter(m => m.type === TEXT_SEARCH_TEXT_CHANGE)[0].searchText).toBe(TEXT);
     });
 
-    it('testing the geometry service', (done) => {
+    it('geometry service', (done) => {
         // use the done function for asynchronus calls
         const itemWithoutGeom = {
-              "type": "Feature",
-              "properties": {
+            "type": "Feature",
+            "properties": {
                 "name": TEXT
             },
             "__SERVICE__": {
@@ -181,17 +181,17 @@ describe('search Epics', () => {
         });
 
         store.dispatch( action );
-        // a set timeout is needed in order to dispatch the actions
-        setTimeout(() => {
-            let actions = store.getActions();
-            expect(actions.length).toBe(5);
-            let addMarkerAction = actions.filter(m => m.type === TEXT_SEARCH_ADD_MARKER)[0];
 
-            expect(addMarkerAction).toExist();
-            expect(addMarkerAction.markerPosition.geometry).toExist();
+        store.subscribe(() => {
+            const actions = store.getActions();
+            if (actions.length === 5) {
+                const addMarkerAction = actions.filter(m => m.type === TEXT_SEARCH_ADD_MARKER)[0];
 
-            done();
-            // setting 0 as delay arises script error
-        }, 300);
+                expect(addMarkerAction).toExist();
+                expect(addMarkerAction.markerPosition.geometry).toExist();
+
+                done();
+            }
+        });
     });
 });

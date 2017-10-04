@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2015, GeoSolutions Sas.
  * All rights reserved.
@@ -6,9 +7,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-var React = require('react');
-var L = require('leaflet');
-const {isEqual} = require('lodash');
+const React = require('react');
+const L = require('leaflet');
+const {isEqual, isFunction} = require('lodash');
 
 var coordsToLatLngF = function(coords) {
     return new L.LatLng(coords[1], coords[0], coords[2]);
@@ -45,6 +46,13 @@ var getPointLayer = function(pointToLayer, geojson, latlng, options) {
                     shadowAnchor: options.style.shadowAnchor,
                     popupAnchor: options.style.popupAnchor
                 })
+            });
+    }
+    if (options && options.style && options.style.html) {
+        return L.marker(
+            latlng,
+            {
+                icon: L.divIcon(isFunction(options.style.html) ? options.style.html(geojson) : options.style.html)
             });
     }
     return L.marker(latlng);
@@ -130,23 +138,25 @@ var geometryToLayer = function(geojson, options) {
     }
 };
 
-let Feature = React.createClass({
-    propTypes: {
-        msId: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.number]),
-        type: React.PropTypes.string,
-        styleName: React.PropTypes.string,
-        properties: React.PropTypes.object,
-        container: React.PropTypes.object, // TODO it must be a L.GeoJSON
-        geometry: React.PropTypes.object, // TODO check for geojson format for geometry
-        style: React.PropTypes.object,
-        onClick: React.PropTypes.func
-    },
+class Feature extends React.Component {
+    static propTypes = {
+        msId: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
+        type: PropTypes.string,
+        styleName: PropTypes.string,
+        properties: PropTypes.object,
+        container: PropTypes.object, // TODO it must be a L.GeoJSON
+        geometry: PropTypes.object, // TODO check for geojson format for geometry
+        style: PropTypes.object,
+        onClick: PropTypes.func
+    };
+
     componentDidMount() {
-        if (this.props.container) {
+        if (this.props.container && this.props.geometry) {
             let style = this.props.style;
             this._layer = geometryToLayer({
                 type: this.props.type,
                 geometry: this.props.geometry,
+                properties: this.props.properties,
                 id: this.props.msId
             }, {
                 style: style,
@@ -165,19 +175,24 @@ let Feature = React.createClass({
             this._layer.on('click', (event) => {
                 if (this.props.onClick) {
                     this.props.onClick({
-                        pixel: event.containerPoint,
+                        pixel: {
+                            x: event.originalEvent && event.originalEvent.x,
+                            y: event.originalEvent && event.originalEvent.y
+                        },
                         latlng: event.latlng
                     });
                 }
             });
         }
-    },
+    }
+
     componentWillReceiveProps(newProps) {
-        if (!isEqual(newProps.properties, this.props.properties) || !isEqual(newProps.geometry, this.props.geometry)) {
+        if (!isEqual(newProps.properties, this.props.properties) || !isEqual(newProps.geometry, this.props.geometry) || !isEqual(newProps.style, this.props.style)) {
             this.props.container.removeLayer(this._layer);
             this._layer = geometryToLayer({
                 type: newProps.type,
                 geometry: newProps.geometry,
+                properties: newProps.properties,
                 msId: this.props.msId
             }, {
                 style: newProps.style,
@@ -194,18 +209,21 @@ let Feature = React.createClass({
             );
             newProps.container.addLayer(this._layer);
         }
-    },
+    }
+
     shouldComponentUpdate(nextProps) {
         return !isEqual(nextProps.properties, this.props.properties) || !isEqual(nextProps.geometry, this.props.geometry);
-    },
+    }
+
     componentWillUnmount() {
         if (this._layer) {
             this.props.container.removeLayer(this._layer);
         }
-    },
+    }
+
     render() {
         return null;
     }
-});
+}
 
 module.exports = Feature;

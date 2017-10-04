@@ -23,34 +23,33 @@ Layers.registerType('google', {
         let google = window.google;
         if (!layersMap) {
             layersMap = {
-               'HYBRID': google.maps.MapTypeId.HYBRID,
-               'SATELLITE': google.maps.MapTypeId.SATELLITE,
-               'ROADMAP': google.maps.MapTypeId.ROADMAP,
-               'TERRAIN': google.maps.MapTypeId.TERRAIN
-           };
+                'HYBRID': google.maps.MapTypeId.HYBRID,
+                'SATELLITE': google.maps.MapTypeId.SATELLITE,
+                'ROADMAP': google.maps.MapTypeId.ROADMAP,
+                'TERRAIN': google.maps.MapTypeId.TERRAIN
+            };
         }
         if (!gmaps[mapId]) {
             gmaps[mapId] = new google.maps.Map(document.getElementById(mapId + 'gmaps'), {
-              disableDefaultUI: true,
-              keyboardShortcuts: false,
-              draggable: false,
-              disableDoubleClickZoom: true,
-              scrollwheel: false,
-              streetViewControl: false
+                disableDefaultUI: true,
+                keyboardShortcuts: false,
+                draggable: false,
+                disableDoubleClickZoom: true,
+                scrollwheel: false,
+                streetViewControl: false
             });
         }
         gmaps[mapId].setMapTypeId(layersMap[options.name]);
-        let view = map.getView();
         let mapContainer = document.getElementById(mapId + 'gmaps');
         let setCenter = function() {
             if (mapContainer.style.visibility !== 'hidden') {
-                const center = ol.proj.transform(view.getCenter(), 'EPSG:3857', 'EPSG:4326');
+                const center = ol.proj.transform(map.getView().getCenter(), 'EPSG:3857', 'EPSG:4326');
                 gmaps[mapId].setCenter(new google.maps.LatLng(center[1], center[0]));
             }
         };
         let setZoom = function() {
             if (mapContainer.style.visibility !== 'hidden') {
-                gmaps[mapId].setZoom(view.getZoom());
+                gmaps[mapId].setZoom(map.getView().getZoom());
             }
         };
 
@@ -103,18 +102,22 @@ Layers.registerType('google', {
 
         let setRotation = function() {
             if (mapContainer.style.visibility !== 'hidden') {
-                const rotation = view.getRotation() * 180 / Math.PI;
+                const rotation = map.getView().getRotation() * 180 / Math.PI;
 
                 mapContainer.style.transform = "rotate(" + rotation + "deg)";
                 google.maps.event.trigger(gmaps[mapId], "resize");
             }
         };
 
-        view.on('change:center', setCenter);
-        view.on('change:resolution', setZoom);
-        view.on('change:rotation', setRotation);
+        let setViewEventListeners = function() {
+            let view = map.getView();
+            view.on('change:center', setCenter);
+            view.on('change:resolution', setZoom);
+            view.on('change:rotation', setRotation);
+        };
+        map.on('change:view', setViewEventListeners);
 
-
+        setViewEventListeners();
         setCenter();
         setZoom();
 
@@ -132,8 +135,8 @@ Layers.registerType('google', {
                 let size = calculateRotatedSize(-rotation, map.getSize());
                 mapContainer.style.width = size.width + 'px';
                 mapContainer.style.height = size.height + 'px';
-                mapContainer.style.left = (Math.round((map.getSize()[0] - size.width) / 2.0)) + 'px';
-                mapContainer.style.top = (Math.round((map.getSize()[1] - size.height) / 2.0)) + 'px';
+                mapContainer.style.left = Math.round((map.getSize()[0] - size.width) / 2.0) + 'px';
+                mapContainer.style.top = Math.round((map.getSize()[1] - size.height) / 2.0) + 'px';
                 google.maps.event.trigger(gmaps[mapId], "resize");
                 setCenter();
             }
@@ -181,7 +184,7 @@ Layers.registerType('google', {
             if (div) {
                 div.style.visibility = options.visibility ? 'visible' : 'hidden';
             }
-            return <div id={mapId + "gmaps"} className="fill" style={gmapsStyle}></div>;
+            return <div id={mapId + "gmaps"} className="fill" style={gmapsStyle} />;
         }
         return null;
     },

@@ -34,7 +34,7 @@
         "routing": { "method": "path", "caseSensitive": true }
     },
     "template": {
-        "path": "default",
+        "path": "./docma-template",
         "options": {
             "title": "MapStore 2",
             "sidebar": true,
@@ -63,12 +63,10 @@
                     "label": "Reference",
                     "items": [
                         { "label": "Framework", "href": "api/framework"},
-
                         { "separator": true },
                         { "label": "JavaScript API", "href": "api/jsapi" },
                         { "separator": true },
                         { "label": "Plugins", "href": "api/plugins" }
-
                     ]
                 },
                 {
@@ -105,43 +103,86 @@
     },
     "src": [
         {
-          "framework" : [
+          "framework": [
             "web/client/components/index.jsdoc",
             "web/client/components/buttons/FullScreenButton.jsx",
+            "web/client/components/buttons/GlobeViewSwitcherButton.jsx",
             "web/client/components/buttons/GoFullButton.jsx",
             "web/client/components/mapcontrols/search/SearchBar.jsx",
+            "web/client/components/notifications/NotificationContainer.jsx",
             "web/client/components/buttons/ToggleButton.jsx",
+            "web/client/components/data/query/AutocompleteField.jsx",
+            "web/client/components/map/leaflet/DrawSupport.jsx",
             "web/client/components/plugins/PluginsContainer.jsx",
 
             "web/client/actions/index.jsdoc",
             "web/client/actions/controls.js",
             "web/client/actions/fullscreen.js",
+            "web/client/actions/globeswitcher.js",
+            "web/client/actions/maps.js",
+            "web/client/actions/maptype.js",
+            "web/client/actions/notifications.js",
             "web/client/actions/search.js",
+
+            "web/client/selectors/index.jsdoc",
+            "web/client/selectors/map.js",
+            "web/client/selectors/maptype.js",
+            "web/client/selectors/tutorial.js",
 
             "web/client/reducers/index.jsdoc",
             "web/client/reducers/controls.js",
+            "web/client/reducers/globeswitcher.js",
+            "web/client/reducers/maps.js",
+            "web/client/reducers/maptype.js",
+            "web/client/reducers/notifications.js",
             "web/client/reducers/search.js",
 
             "web/client/epics/index.jsdoc",
+            "web/client/epics/automapupdate.js",
+            "web/client/epics/cookies.js",
             "web/client/epics/fullscreen.js",
+            "web/client/epics/globeswitcher.js",
+            "web/client/epics/maptype.js",
+            "web/client/epics/notifications.js",
             "web/client/epics/search.js",
+            "web/client/epics/tutorial.js",
+            "web/client/epics/wfsquery.js",
 
             "web/client/utils/index.jsdoc",
+            "web/client/utils/CoordinatesUtils.js",
             "web/client/utils/PluginsUtils.js",
+            "web/client/utils/PrintUtils.js",
+            "web/client/utils/ogc/Filter/FilterBuilder.js",
+            "web/client/utils/ogc/WFS/RequestBuilder.js",
+            "web/client/utils/ogc/WFST/RequestBuilder.js",
             "web/client/utils/ShareUtils.js"
           ],
           "jsapi": "web/client/jsapi/MapStore2.js",
             "plugins": [
                 "web/client/plugins/index.jsdoc",
+                "web/client/plugins/AutoMapUpdate.jsx",
+                "web/client/plugins/BackgroundSelector.jsx",
                 "web/client/plugins/BackgroundSwitcher.jsx",
                 "web/client/plugins/DrawerMenu.jsx",
+                "web/client/plugins/GlobeViewSwitcher.jsx",
                 "web/client/plugins/GoFull.jsx",
                 "web/client/plugins/Map.jsx",
+                "web/client/plugins/Measure.jsx",
+                "web/client/plugins/MeasurePanel.jsx",
+                "web/client/plugins/MeasureResults.jsx",
                 "web/client/plugins/FullScreen.jsx",
                 "web/client/plugins/Identify.jsx",
+                "web/client/plugins/Locate.jsx",
                 "web/client/plugins/Login.jsx",
+                "web/client/plugins/Notifications.jsx",
+                "web/client/plugins/ScaleBox.jsx",
                 "web/client/plugins/ScrollTop.jsx",
-                "web/client/plugins/Search.jsx"
+                "web/client/plugins/Search.jsx",
+                "web/client/plugins/SearchServicesConfig.jsx",
+                "web/client/plugins/TOC.jsx",
+                "web/client/plugins/WFSDownload.jsx",
+                "web/client/plugins/ZoomIn.jsx",
+                "web/client/plugins/ZoomOut.jsx"
             ]
         },
         "./docs/**/*md",

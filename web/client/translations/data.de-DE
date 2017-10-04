@@ -21,6 +21,14 @@
         "enable": "Aktiviere",
         "layers": "Ebenen",
         "warning": "Warnung",
+        "version": {
+            "label": "Version"
+        },
+        "autorefresh": {
+            "of": "of",
+            "updating": "Updating...",
+            "layers": "layers"
+        },
         "layerProperties": {
             "windowTitle": "Ebenen Eigenschaften",
             "title": "Titel",
@@ -29,6 +37,9 @@
             "general": "Generell",
             "display": "Darstellung",
             "style": "Stil",
+            "transparent": "Transparent",
+            "singleTile": "Single Tile",
+            "cached": "Verwenden Sie Cache-Optionen",
             "styleCustom": "Stil \"{value}\" nutzen",
             "styleListLoadError": "Es gab einen Fehler beim Laden der Liste von Stilen",
             "stylesRefreshList": "Aktualisiere die Liste von Stilen",
@@ -39,6 +50,30 @@
             "confirmDelete": "Bist du sicher?",
             "featureTypeError": "Layerattribute können nicht geladen werden",
             "elevation": "Höhe"
+        },
+        "notification": {
+            "update": "Update",
+            "warning": "Warning",
+            "success": "Success",
+            "backgroundLayerNotSupported": "Der zuvor gewählte Hintergrund wird nicht für diese Art von Karte unterstützt. Der erste verfügbare wird dann verwendet.",
+            "noBackgroundLayerSupported": "Es gibt keine unterstützten Hintergrundschichten für diese Art von Karte.",
+            "updateOldMap": "This is an old map, thus not all the functionalities can be enabled. Click on update button in order to update the map or simply dismiss this notification if you don't want to update it.",
+            "warningSaveUpdatedMap": "Some layers haven't been updated correctly",
+            "saveUpdatedMap": "All the layers have been successfully updated"
+        },
+        "dock": {
+            "row": "{rowsSelected} reihe ausgewählt",
+            "rows": "{rowsSelected} reihen ausgewählt"
+        },
+        "globeswitcher": {
+            "tooltipDeactivate": "Beenden Sie den 3D-Modus",
+            "tooltipActivate": "Geben Sie den 3D-Modus ein"
+        },
+        "cookie":{
+            "info": "This website uses cookies to improve your experience. We'll assume you're ok with this, but you can opt-out if you wish.",
+            "moreDetailsButton": "More Details",
+            "leave": "Leave",
+            "accept": "Accept"
         },
         "background": "Hintergrund",
         "language": "Sprache",
@@ -120,6 +155,11 @@
                 }
             }
         },
+        "cookiesPolicyNotification": {
+            "title": "Deze website maakt gebruik van cookies",
+            "message": "Door onze website te blijven gebruiken, accepteert u ons gebruik van cookies.",
+            "confirm": "Ik ben het eens"
+        },
         "manager": {
             "openInANewTab":"Karte öffnen",
             "deleteMap":"Karte löschen",
@@ -176,13 +216,24 @@
             "displayLegendAndTools": "Legende und Werkzeuge zeigen",
             "zoomToLayerExtent": "Zoome auf Ausdehung der Ebene",
             "editLayerProperties": "Ändere Ebenen Eigenschaften",
+            "browseData": "öffnen Sie die Attributtabelle",
             "searchFeatures": "Auf dieser Ebene suchen...",
             "removeLayer": "Ebene entfernen",
             "loadingerror": "Diese Ebene wurde nicht korrekt geladen",
             "measure": "Messen",
             "backgroundSwitcher": "Hintergrund",
             "layers": "Ebenen",
-            "drawerButton": "Ebenen"
+            "drawerButton": "Ebenen",
+            "refreshTitle": "Ebenen aktualisieren",
+            "refreshConfirm": "Aktualisieren",
+            "refreshMessage": "Laden Sie die WMS-Layer-Konfiguration von dem Server(s)",
+            "refreshError": "Fehler beim Aktualisieren von Ebenen: ",
+            "refreshOptions": {
+                "bbox": "BBOX aktualisieren",
+                "search": "Suchoptionen aktualisieren",
+                "title": "Titel aktualisieren",
+                "dimensions": "Dimensionen aktualisieren"
+            }
         },
         "print":{
             "paneltitle": "Drucken",
@@ -256,7 +307,32 @@
             "bearingLabel": "Richtung"
         },
         "search":{
-            "placeholder": "Suche nache einer Adresse oder gib Koordinaten ein ..."
+            "placeholder": "Suche nache einer Adresse oder gib Koordinaten ein ...",
+            "searchservicesbutton": "Konfigurations-Suchdienste konfigurieren",
+            "configpaneltitle": "Einen Suchdienst anlegen / bearbeiten",
+            "serviceslistlabel": "Verfügbare Dienstleistungen",
+            "overriedservice": "Überlastete Standarddienste",
+            "addbtn": "Hinzufügen",
+            "nextbtn": "Nächster",
+            "prevbtn": "Zurück",
+            "savebtn": "Aktualisieren",
+            "cancelbtn": "Stornieren",
+            "confirmremove": "Löschen?",
+            "cancelconfirm": "Bist du sicher?",
+            "s_name": "Name",
+            "s_title": "Titel",
+            "s_description": "Beschreibung",
+            "s_priority": "Priorität",
+            "s_url": "Service url",
+            "s_layer": "Layer",
+            "s_attributes": "Attribute",
+            "s_sort": "Sortiere nach",
+            "s_max_features": "Max. Eigenschaften",
+            "s_wfs_props_label" : "WFS-Service-Requisiten",
+            "s_wfs_opt_props_label" : "Optionale Requisiten",
+            "s_result_props_label": "Ergebnisanzeigeeigenschaften",
+            "s_priority_info": "Wird verwendet, um Suchergebnisse zu sortieren, höhere Werte zuerst. Nominatim Ergebnisse haben Priorität = 5",
+            "serviceslistempty": "Keine benutzerdefinierten Services definiert"
         },
         "drawLocal": {
             "draw": {
@@ -414,6 +490,7 @@
                 "combo_placeholder": "Attribut",
                 "text_placeholder": "Gib den zu suchenden Text ein",
                 "attribute_filter_header": "Attribut Filter",
+                "tooltipTextField": "Verwenden <b>*</b> für ein beliebiges Zeichen</br>Verwenden <b>.</b> für ein einzelnes Zeichen</br>Verwenden <b>!</b> für Sonderzeichen (* und .)</br>",
                 "groupField": {
                     "any": "jeder",
                     "all": "alle",
@@ -425,6 +502,11 @@
                 },
                 "datefield": {
                     "wrong_date_range": "Das Datum des Beginns muss früher als das des Endes sein"
+                },
+                "autocomplete": {
+                    "emptyList": "Keine Ergebnisse",
+                    "emptyFilter": "Der Filter hat keine Ergebnisse zurückgegeben",
+                    "open": "Menü öffnen"
                 }
             },
             "spatialfilter": {
@@ -446,17 +528,18 @@
                 },
                 "methods": {
                     "zone": "Zone",
+                    "viewport": "Viewport",
                     "box": "BoundingBox",
                     "buffer": "Buffer",
                     "circle": "Kreis",
                     "poly": "Polygon"
                 },
                 "operations": {
-                    "intersects": "INTERSECTS",
-                    "bbox": "BBOX",
-                    "contains": "CONTAINS",
-                    "dwithin": "DWITHIN",
-                    "within": "WITHIN"
+                    "intersects": "Schneidet",
+                    "bbox": "Rechteck",
+                    "contains": "Ist beinhaltet",
+                    "dwithin": "Entfernung von",
+                    "within": "Enthält"
                 }
             }
         },
@@ -471,8 +554,11 @@
             "retypePwd": "Passwort wiederholen",
             "passwordMinlenght": "Dein Passwort muss aus mindestens {minSize} Zeichen bestehen",
             "passwordCheckFail": "Passwörter sind nicht identisch!",
+            "passwordInvalid": "Ungültiges Passwort",
             "username": "Benutzername",
             "password": "Passwort",
+            "passwordChanged": "Passwort geändert",
+            "passwordError": "Fehler beim Ändern des Passworts",
             "signIn":"Anmelden",
             "loginFail":"Anmeldung gescheitert",
             "loginFailedStatusMessages": {
@@ -516,6 +602,7 @@
           "newGroup": "Neue Gruppe",
           "manageGroups": "Gruppen verwalten",
           "description": "Beschreibung:",
+          "noDescriptionAvailable": "(Keine beschreibung)",
           "groupName": "Gruppenname",
           "groupDescription": "Beschreibung",
           "saveGroup": "Speichern",
@@ -718,17 +805,57 @@
             "single": "Single Band"
         },
         "featuregrid": {
+            "columns": "Spalten",
             "header": "Suchresultate",
             "tools": "Werkzeugpalette",
             "export": "Export",
             "selectall": "Alle auswählen",
             "deselectall": "Auswahl aufheben",
             "backtosearch": "Zurück zur suche",
+            "resultInfo": "{total, plural, =0 {Keine Artikel} =1 {{total} von {total}} other {{start}-{end} von {total}}}",
+            "pageInfo": "{totalPages, plural, =0 {keine Seite} =1 {Seite {totalPages} von {totalPages}} other {Seite {page} von {totalPages}}}",
             "pagination": {
                 "page": "Seite",
                 "of":   "von",
                 "to":   "bis",
                 "more": "viele"
+            },
+            "noFeaturesAvailable": "Keine features verfügbar",
+            "errorSaving": "Beim Speichern des Vorgangs ist ein Fehler aufgetreten",
+            "yesButton": "ein",
+            "noButton": "nein",
+            "deleteButton": "Löschen",
+            "clear": "Sind Sie sicher, dass Sie alle vorgenommenen Änderungen rückgängig zu machen?",
+            "featureClose": "Wirklich wollen Sie das Raster schließen?",
+            "delete": "Überprüfen Sie die Elemente entfernen?",
+            "missingGeometry": "Missing geometry",
+            "toolbar": {
+                "editMode": "Bearbeitungsmodus",
+                "advancedFilter": "Erweiterte Suche",
+                "quitEditMode": "Beenden Sie den Bearbeitungsmodus",
+                "addNewFeatures": "Neue Funktion hinzufügen",
+                "editFeature": "Bearbeiten Sie die Funktion",
+                "drawGeom": "Zeichen zeichnen",
+                "stopDrawGeom": "Geometrieerstellung abbrechen",
+                "addGeom": "Fügen Sie ein Element an die vorhandene Geometrie",
+                "deleteSelectedFeatures": "Ausgewählte Funktionen löschen",
+                "saveChanges": "Änderungen speichern",
+                "saving": "Speichern...",
+                "cancelChanges": "Änderungen abbrechen",
+                "deleteGeometry": "Geometrie löschen",
+                "downloadGridData": "Daten herunterladen",
+                "hideShowColumns": "Spalten ausblenden / anzeigen",
+                "zoomAll": "Zoom zur Erweterung der Seite"
+            }
+        },
+        "wfsdownload": {
+            "title": "Daten exportieren",
+            "format": "Datei Format",
+            "export": "Export",
+            "downloadonlycurrentpage": "Nur aktuelle Seite herunterladen",
+            "error": {
+                "title": "Fehler beim Export",
+                "invalidOutputFormat": "Das ausgewählte Exportformat ist nicht verfügbar"
             }
         },
         "vectorstyler": {
@@ -820,7 +947,7 @@
             },
             "home": {
                 "title": "Home",
-                "text": "Go to homepage"
+                "text": "Click to go to homepage"
             },
             "searchButton": {
                 "title": "Search",
@@ -857,6 +984,33 @@
             "examples": {
                 "title": "Custom Application",
                 "text": "You can use components and plugins of MapStore2 to build custom applications"
+            },
+            "introCesium": {
+                "title": "3D map instructions",
+                "text": "Click on next button to start the tutorial"
+            },
+            "cesium": {
+                "title": "Interactions with the Map",
+                "pan": "Pan view",
+                "zoom": "Zoom view",
+                "tilt": "Tilt view",
+                "rotate": "Rotate view",
+                "oneDrag": "One finger drag",
+                "twoPinch": "Two finger pinch",
+                "twoDragSame": "Two finger drag, same direction",
+                "twoDragOpposite": "Two finger drag, opposite direction",
+                "leftClick": "Left click + drag",
+                "rightClick": "Right click + drag, or Mouse wheel scroll",
+                "middleClick": "Middle click + drag, or CTRL + Left/Right click + drag"
+
+            },
+            "cesiumCompass": {
+                "title": "Compass",
+                "text": "You can use the compass to orbit around the globe. Drag to rotate the map"
+            },
+            "cesiumNavigation": {
+                "title": "Navigation",
+                "text": "Here you can find the zoom in and zoom out buttons"
             }
         }
     }

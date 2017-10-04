@@ -21,6 +21,10 @@ var {
     SHOW_SETTINGS,
     HIDE_SETTINGS,
     UPDATE_SETTINGS,
+    REFRESH_LAYERS,
+    LAYERS_REFRESHED,
+    LAYERS_REFRESH_ERROR,
+    BROWSE_DATA,
     changeLayerProperties,
     toggleNode,
     sortNode,
@@ -33,7 +37,11 @@ var {
     removeLayer,
     showSettings,
     hideSettings,
-    updateSettings
+    updateSettings,
+    refreshLayers,
+    layersRefreshed,
+    layersRefreshError,
+    browseData
 } = require('../layers');
 var {getLayerCapabilities} = require('../layerCapabilities');
 
@@ -48,7 +56,7 @@ describe('Test correctness of the layers actions', () => {
             expect(e.newProperties.visibility).toBe(true);
             expect(e.layer).toBe('layer');
             done();
-        } catch(ex) {
+        } catch (ex) {
             done(ex);
         }
 
@@ -63,6 +71,34 @@ describe('Test correctness of the layers actions', () => {
         expect(retval.type).toBe(SORT_NODE);
         expect(retval.node).toBe('group');
         expect(retval.order).toBe(order);
+    });
+
+    it('refreshLayers', () => {
+        var retval = refreshLayers(['layer'], {
+            opt: 'val'
+        });
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(REFRESH_LAYERS);
+        expect(retval.layers.length).toBe(1);
+        expect(retval.options.opt).toBe('val');
+    });
+
+    it('layersRefreshed', () => {
+        var retval = layersRefreshed(['layer']);
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(LAYERS_REFRESHED);
+        expect(retval.layers.length).toBe(1);
+    });
+
+    it('layersRefreshError', () => {
+        var retval = layersRefreshError(['layer'], 'err');
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(LAYERS_REFRESH_ERROR);
+        expect(retval.layers.length).toBe(1);
+        expect(retval.error).toBe('err');
     });
 
     it('toggleNode', () => {
@@ -188,5 +224,11 @@ describe('Test correctness of the layers actions', () => {
                 done();
             }
         });
+    });
+    it('browseData', () => {
+        const layer = {id: "TEST", name: "test", url: "test"};
+        const action = browseData(layer);
+        expect(action.type).toBe(BROWSE_DATA);
+        expect(action.layer).toBe(layer);
     });
 });

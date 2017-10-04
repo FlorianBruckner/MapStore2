@@ -19,6 +19,7 @@ const {
     EXPAND_SPATIAL_PANEL,
     SELECT_SPATIAL_METHOD,
     SELECT_SPATIAL_OPERATION,
+    CHANGE_SPATIAL_ATTRIBUTE,
     REMOVE_SPATIAL_SELECT,
     SHOW_SPATIAL_DETAILS,
     QUERY_FORM_RESET,
@@ -26,6 +27,7 @@ const {
     CHANGE_DWITHIN_VALUE,
     ZONE_FILTER,
     ZONE_SEARCH,
+    UPDATE_GEOMETRY,
     // OPEN_MENU,
     ZONE_CHANGE,
     ZONES_RESET,
@@ -33,7 +35,11 @@ const {
     SIMPLE_FILTER_FIELD_UPDATE,
     ADD_SIMPLE_FILTER_FIELD,
     REMOVE_SIMPLE_FILTER_FIELD,
-    REMOVE_ALL_SIMPLE_FILTER_FIELDS
+    REMOVE_ALL_SIMPLE_FILTER_FIELDS,
+    UPDATE_FILTER_FIELD_OPTIONS,
+    LOADING_FILTER_FIELD_OPTIONS,
+    SET_AUTOCOMPLETE_MODE,
+    TOGGLE_AUTOCOMPLETE_MENU
 } = require('../actions/queryform');
 
 const {
@@ -63,6 +69,7 @@ const initialState = {
             index: 0
         }
     ],
+    maxFeaturesWPS: 5,
     filterFields: [],
     spatialField: {
         method: null,
@@ -80,12 +87,16 @@ function queryform(state = initialState, action) {
             // Calculate the key number, this should be different for each new element
             //
             const newFilterField = {
-                rowId: new Date().getUTCMilliseconds(),
+                rowId: new Date().getTime(),
                 groupId: action.groupId,
                 attribute: null,
                 operator: "=",
                 value: null,
                 type: null,
+                fieldOptions: {
+                    valuesCount: 0,
+                    currentPage: 1
+                },
                 exception: null
             };
 
@@ -97,7 +108,7 @@ function queryform(state = initialState, action) {
         case UPDATE_FILTER_FIELD: {
             return assign({}, state, {filterFields: state.filterFields.map((field) => {
                 if (field.rowId === action.rowId) {
-                    let f = assign({}, field, {[action.fieldName]: action.fieldValue, type: action.fieldType});
+                    let f = assign({}, field, {[action.fieldName]: action.fieldValue, type: action.fieldType}, {fieldOptions: assign({}, {...field.fieldOptions}, {currentPage: action.fieldOptions.currentPage === undefined ? 1 : action.fieldOptions.currentPage})});
                     if (action.fieldName === "attribute") {
                         f.value = null;
                         f.operator = "=";
@@ -106,6 +117,33 @@ function queryform(state = initialState, action) {
                         f.value = null;
                     }
                     return f;
+                }
+                return field;
+            })});
+        }
+        case UPDATE_FILTER_FIELD_OPTIONS: {
+            return assign({}, state, {filterFields: state.filterFields.map((field) => {
+                if (field.rowId === action.filterField.rowId) {
+                    return assign({}, field, {options: assign({}, {...field.options}, {[field.attribute]: action.options} )}, {fieldOptions: assign({}, {...field.fieldOptions}, {valuesCount: action.valuesCount})});
+                }
+                return field;
+            })});
+        }
+        case TOGGLE_AUTOCOMPLETE_MENU: {
+            return assign({}, state, {filterFields: state.filterFields.map((field) => {
+                if (field.rowId === action.rowId) {
+                    return assign({}, field, {openAutocompleteMenu: action.status} );
+                }
+                return field;
+            })});
+        }
+        case SET_AUTOCOMPLETE_MODE: {
+            return assign({}, state, {autocompleteEnabled: action.status});
+        }
+        case LOADING_FILTER_FIELD_OPTIONS: {
+            return assign({}, state, {filterFields: state.filterFields.map((field) => {
+                if (field.rowId === action.filterField.rowId) {
+                    return assign({}, field, {loading: action.status});
                 }
                 return field;
             })});
@@ -120,7 +158,7 @@ function queryform(state = initialState, action) {
         }
         case ADD_GROUP_FIELD: {
             const newGroupField = {
-                id: new Date().getUTCMilliseconds(),
+                id: new Date().getTime(),
                 logic: "OR",
                 groupId: action.groupId,
                 index: action.index + 1
@@ -164,8 +202,14 @@ function queryform(state = initialState, action) {
         case SELECT_SPATIAL_METHOD: {
             return assign({}, state, {spatialField: assign({}, state.spatialField, {[action.fieldName]: action.method, geometry: null})});
         }
+        case UPDATE_GEOMETRY: {
+            return assign({}, state, {spatialField: assign({}, state.spatialField, {geometry: action.geometry})}, {toolbarEnabled: true});
+        }
         case SELECT_SPATIAL_OPERATION: {
             return assign({}, state, {spatialField: assign({}, state.spatialField, {[action.fieldName]: action.operation})});
+        }
+        case CHANGE_SPATIAL_ATTRIBUTE: {
+            return assign({}, state, { spatialField: assign({}, state.spatialField, {attribute: action.attribute}) });
         }
         case CHANGE_DRAWING_STATUS: {
             if (action.owner === "queryform" && action.status === "start") {
@@ -185,13 +229,15 @@ function queryform(state = initialState, action) {
             return newState;
         }
         case REMOVE_SPATIAL_SELECT: {
-            return assign({}, state, {spatialField: assign({}, state.spatialField, initialState.spatialField)});
+            let spatialField = assign({}, initialState.spatialField, { attribute: state.spatialField.attribute });
+            return assign({}, state, {spatialField: assign({}, state.spatialField, spatialField)});
         }
         case SHOW_SPATIAL_DETAILS: {
             return assign({}, state, {showDetailsPanel: action.show});
         }
         case QUERY_FORM_RESET: {
-            return assign({}, state, initialState);
+            let spatialField = assign({}, initialState.spatialField, { attribute: state.spatialField.attribute });
+            return assign({}, state, initialState, {spatialField});
         }
         case SHOW_GENERATED_FILTER: {
             return assign({}, state, {showGeneratedFilter: action.data});
@@ -351,7 +397,7 @@ function queryform(state = initialState, action) {
             return {...state, simpleFilterFields: newSimpleFilterFields};
         }
         case ADD_SIMPLE_FILTER_FIELD: {
-            const field = ( action.properties.fieldId) ? action.properties : {...action.properties, fieldId: new Date().getUTCMilliseconds()};
+            const field = ( action.properties.fieldId) ? action.properties : {...action.properties, fieldId: new Date().getTime()};
             const newSimpleFilterFields = (state.simpleFilterFields) ? [...state.simpleFilterFields, field] : [field];
             return {...state, simpleFilterFields: newSimpleFilterFields};
         }

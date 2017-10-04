@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2015, GeoSolutions Sas.
  * All rights reserved.
@@ -15,44 +16,45 @@ const canvg = require('canvg-browser');
 const {Promise} = require('es6-promise');
 
 require("./snapshotMapStyle.css");
+
 /**
  * GrabMap for Leaflet uses HTML2CANVAS to generate the image for the existing
  * leaflet map.
  * if it is not tainted, this can be used also to generate snapshot
  * (extracting the image URL from the canvas).
  */
-let GrabLMap = React.createClass({
-    propTypes: {
-            config: ConfigUtils.PropTypes.config,
-            layers: React.PropTypes.array,
-            snapstate: React.PropTypes.object,
-            active: React.PropTypes.bool,
-            onSnapshotReady: React.PropTypes.func,
-            onStatusChange: React.PropTypes.func,
-            onSnapshotError: React.PropTypes.func,
-            allowTaint: React.PropTypes.bool,
-            browser: React.PropTypes.object,
-            canvas: React.PropTypes.node,
-            timeout: React.PropTypes.number,
-            drawCanvas: React.PropTypes.bool,
-            mapId: React.PropTypes.string
-    },
-    getDefaultProps() {
-        return {
-            config: null,
-            layers: [],
-            snapstate: {state: "DISABLED"},
-            active: false,
-            onSnapshotReady: () => {},
-            onStatusChange: () => {},
-            onSnapshotError: () => {},
-            browser: {},
-            canvas: <canvas></canvas>,
-            drawCanvas: true,
-            mapId: "map",
-            timeout: 2000
-        };
-    },
+class GrabLMap extends React.Component {
+    static propTypes = {
+        config: ConfigUtils.PropTypes.config,
+        layers: PropTypes.array,
+        snapstate: PropTypes.object,
+        active: PropTypes.bool,
+        onSnapshotReady: PropTypes.func,
+        onStatusChange: PropTypes.func,
+        onSnapshotError: PropTypes.func,
+        allowTaint: PropTypes.bool,
+        browser: PropTypes.object,
+        canvas: PropTypes.node,
+        timeout: PropTypes.number,
+        drawCanvas: PropTypes.bool,
+        mapId: PropTypes.string
+    };
+
+    static defaultProps = {
+        config: null,
+        layers: [],
+        snapstate: {state: "DISABLED"},
+        active: false,
+        onSnapshotReady: () => {},
+        onStatusChange: () => {},
+        onSnapshotError: () => {},
+        browser: {},
+        canvas: <canvas />,
+        drawCanvas: true,
+        mapId: "map",
+        timeout: 2000
+    };
+
     componentDidMount() {
         this.mapDiv = document.getElementById(this.props.mapId);
         this.proxy = null;
@@ -61,7 +63,7 @@ let GrabLMap = React.createClass({
             if ( typeof proxyUrl === 'object') {
                 proxyUrl = proxyUrl.url;
             }
-            this.proxy = (proxyUrl.indexOf("?url=") !== -1) ? proxyUrl.replace("?url=", '') : proxyUrl;
+            this.proxy = proxyUrl.indexOf("?url=") !== -1 ? proxyUrl.replace("?url=", '') : proxyUrl;
         }
         // start SHOOTING
         let mapIsLoading = this.mapIsLoading(this.props.layers);
@@ -69,7 +71,8 @@ let GrabLMap = React.createClass({
             this.props.onStatusChange("SHOTING");
             this.triggerShooting(this.props.timeout);
         }
-    },
+    }
+
     componentWillReceiveProps(nextProps) {
         let mapIsLoading = this.mapIsLoading(nextProps.layers);
         let mapChanged = this.mapChanged(nextProps);
@@ -86,10 +89,12 @@ let GrabLMap = React.createClass({
                 }
             }
         }
-    },
+    }
+
     shouldComponentUpdate(nextProps) {
         return this.mapChanged(nextProps) || this.props.snapstate !== nextProps.snapstate;
-    },
+    }
+
     componentDidUpdate(prevProps) {
         let mapIsLoading = this.mapIsLoading(this.props.layers);
         let mapChanged = this.mapChanged(prevProps);
@@ -97,15 +102,18 @@ let GrabLMap = React.createClass({
             this.triggerShooting(this.props.timeout);
         }
 
-    },
+    }
+
     componentWillUnmount() {
         if (this.previousTimeout) {
             clearTimeout(this.previousTimeout);
         }
-    },
-    getCanvas() {
+    }
+
+    getCanvas = () => {
         return this.refs.canvas;
-    },
+    };
+
     render() {
         return (
             <canvas
@@ -117,14 +125,17 @@ let GrabLMap = React.createClass({
                 }}
                 ref="canvas" />
         );
-    },
-    mapChanged(nextProps) {
-        return !isEqual(nextProps.layers, this.props.layers) || (nextProps.active !== this.props.active) || nextProps.config !== this.props.config;
-    },
-    mapIsLoading(layers) {
+    }
+
+    mapChanged = (nextProps) => {
+        return !isEqual(nextProps.layers, this.props.layers) || nextProps.active !== this.props.active || nextProps.config !== this.props.config;
+    };
+
+    mapIsLoading = (layers) => {
         return layers.some((layer) => { return layer.visibility && layer.loading; });
-    },
-    triggerShooting(delay) {
+    };
+
+    triggerShooting = (delay) => {
         if (this.previousTimeout) {
             clearTimeout(this.previousTimeout);
         }
@@ -132,10 +143,12 @@ let GrabLMap = React.createClass({
             this.doSnapshot(this.props);
         },
         delay);
-    },
-    doSnapshot(props) {
+    };
+
+    doSnapshot = (props) => {
         // get map style shifted
         var leftString = window.getComputedStyle(this.mapDiv).getPropertyValue("left");
+        leftString = leftString === 'auto' ? 0 : leftString;
 
         // get all the informations needed to snap svg before
         let mapPanes = this.mapDiv.getElementsByClassName("leaflet-map-pane");
@@ -149,10 +162,15 @@ let GrabLMap = React.createClass({
         let svgH;
         let svgW;
         let svgString;
-        if (svg && svg.outerHTML) {
-            svgOffsetX = svgs[0] ? svgs[0].getBoundingClientRect().left : 0;
-            svgOffsetY = svgs[0] ? svgs[0].getBoundingClientRect().top : 0;
-            svgString = svgs[0].outerHTML;
+        if (svg) {
+            // get svg translate position to avoid overlay issue on IE
+            let svgTranslate = svg.style && svg.style.transform ? svg.style.transform.replace(/\(|\)|translate3d|translate/g, '').split('px, ') : ['0', '0'];
+            svgTranslate = [Number.parseFloat(svgTranslate[0].replace('px', '')), Number.parseFloat(svgTranslate[1].replace('px', ''))];
+            svgTranslate = svg.style.transform && svg.style.transform.substr(0, 11) === 'translate3d' ? [0, 0] : svgTranslate;
+
+            svgOffsetX = svgs[0] ? svgs[0].getBoundingClientRect().left - svgTranslate[0] : 0;
+            svgOffsetY = svgs[0] ? svgs[0].getBoundingClientRect().top - svgTranslate[1] : 0;
+            svgString = svgs[0].outerHTML ? svgs[0].outerHTML : this.outerHTML(svgs[0]);
             svgW = svg.getAttribute("width");
             svgH = svg.getAttribute("height");
             svg.setAttribute("style", "");
@@ -162,10 +180,10 @@ let GrabLMap = React.createClass({
             left = parseInt( leftString.replace('px', ''), 10);
         }
 
-        // get pan position from translate 3d
+        // get pan position from translate 3d or translate (IE)
         let leafletPane = this.mapDiv.getElementsByClassName("leaflet-map-pane");
-        let panPosition = leafletPane && leafletPane[0] && leafletPane[0].style && leafletPane[0].style.transform ? leafletPane[0].style.transform.replace(/\(|\)|translate3d/g, '').split('px, ') : ['0', '0'];
-        panPosition = [Number.parseFloat(panPosition[0]), Number.parseFloat(panPosition[1])];
+        let panPosition = leafletPane && leafletPane[0] && leafletPane[0].style && leafletPane[0].style.transform ? leafletPane[0].style.transform.replace(/\(|\)|translate3d|translate/g, '').split('px, ') : ['0', '0'];
+        panPosition = [Number.parseFloat(panPosition[0].replace('px', '')), Number.parseFloat(panPosition[1].replace('px', ''))];
         let tilePane = this.mapDiv.getElementsByClassName("leaflet-tile-pane");
         // clone to change style attributes
         let tilePaneClone = tilePane && tilePane[0].cloneNode(true);
@@ -206,12 +224,12 @@ let GrabLMap = React.createClass({
                 resetLayerStyles(l);
                 return html2canvas(l, {
                         // you have to provide a canvas to avoid html2canvas to crop the image
-                        canvas: newCanvas,
-                        logging: false,
-                        proxy: this.proxy,
-                        allowTaint: props && props.allowTaint,
+                    canvas: newCanvas,
+                    logging: false,
+                    proxy: this.proxy,
+                    allowTaint: props && props.allowTaint,
                         // TODO: improve to useCORS if every source has CORS enabled
-                        useCORS: props && props.allowTaint
+                    useCORS: props && props.allowTaint
                 });
             }, this);
             queue = [this.refs.canvas, ...queue];
@@ -227,7 +245,7 @@ let GrabLMap = React.createClass({
                     let cx = pCanv.getContext("2d");
                     if (l.style && !isNaN(Number.parseFloat(l.style.opacity))) {
                         cx.globalAlpha = Number.parseFloat(l.style.opacity);
-                    }else {
+                    } else {
                         cx.globalAlpha = 1;
                     }
                     cx.drawImage(canv, -1 * left, 0);
@@ -243,12 +261,12 @@ let GrabLMap = React.createClass({
                         newCanvas.width = newCanvas.width + left;
                         html2canvas(markers, {
                                 // you have to provide a canvas to avoid html2canvas to crop the image
-                                canvas: newCanvas,
-                                logging: false,
-                                proxy: this.proxy,
-                                allowTaint: props && props.allowTaint,
+                            canvas: newCanvas,
+                            logging: false,
+                            proxy: this.proxy,
+                            allowTaint: props && props.allowTaint,
                                 // TODO: improve to useCORS if every source has CORS enabled
-                                useCORS: props && props.allowTaint
+                            useCORS: props && props.allowTaint
                         }).then( (c) => {
                             let cx = finalCanvas.getContext("2d");
                             cx.globalAlpha = 1;
@@ -287,26 +305,34 @@ let GrabLMap = React.createClass({
             });
         }
 
-    },
+    };
+
     /**
      * Check if the canvas is tainted, so if it is allowed to export images
      * from it.
      */
-    isTainted(can) {
+    isTainted = (can) => {
         let canvas = can || this.refs.canvas;
         let ctx = canvas.getContext("2d");
         try {
             // try to generate a small image
             ctx.getImageData(0, 0, 1, 1);
             return false;
-        } catch(err) {
+        } catch (err) {
             // check the error code for tainted resources
-            return (err.code === 18);
+            return err.code === 18;
         }
-    },
-    exportImage() {
+    };
+
+    exportImage = () => {
         return this.refs.canvas.toDataURL();
-    }
-});
+    };
+
+    outerHTML = (node) => {
+        const parent = document.createElement('div');
+        parent.appendChild(node.cloneNode(true));
+        return parent.innerHTML;
+    };
+}
 
 module.exports = GrabLMap;

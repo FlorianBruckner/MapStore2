@@ -153,7 +153,7 @@ function getResolutions() {
     if (getHook('RESOLUTIONS_HOOK')) {
         return getHook('RESOLUTIONS_HOOK')();
     }
-    return [];
+    return getGoogleMercatorResolutions(0, 21, DEFAULT_SCREEN_DPI);
 }
 
 function getScales(projection, dpi) {
@@ -170,7 +170,7 @@ function defaultGetZoomForExtent(extent, mapSize, minZoom, maxZoom, dpi, mapReso
     const extentResolution = Math.max(xResolution, yResolution);
 
     const resolutions = mapResolutions || getResolutionsForScales(getGoogleMercatorScales(
-        minZoom, maxZoom, (dpi || DEFAULT_SCREEN_DPI)), "EPSG:3857", dpi);
+        minZoom, maxZoom, dpi || DEFAULT_SCREEN_DPI), "EPSG:3857", dpi);
 
     const {zoom, ...other} = resolutions.reduce((previous, resolution, index) => {
         const diff = Math.abs(resolution - extentResolution);
@@ -195,7 +195,7 @@ function getZoomForExtent(extent, mapSize, minZoom, maxZoom, dpi) {
         return getHook("EXTENT_TO_ZOOM_HOOK")(extent, mapSize, minZoom, maxZoom, dpi);
     }
     const resolutions = getHook("RESOLUTIONS_HOOK") ?
-        getHook("RESOLUTIONS_HOOK")(extent, mapSize, minZoom, maxZoom, dpi, dpi2dpm((dpi || DEFAULT_SCREEN_DPI))) : null;
+        getHook("RESOLUTIONS_HOOK")(extent, mapSize, minZoom, maxZoom, dpi, dpi2dpm(dpi || DEFAULT_SCREEN_DPI)) : null;
     return defaultGetZoomForExtent(extent, mapSize, minZoom, maxZoom, dpi, resolutions);
 }
 
@@ -229,8 +229,8 @@ function getCenterForExtent(extent, projection) {
     var wExtent = extent[2] - extent[0];
     var hExtent = extent[3] - extent[1];
 
-    var w = (wExtent) / 2;
-    var h = (hExtent) / 2;
+    var w = wExtent / 2;
+    var h = hExtent / 2;
 
     return {
         x: extent[0] + w,
@@ -257,13 +257,45 @@ const isNearlyEqual = function(a, b) {
     if (a === undefined || b === undefined) {
         return false;
     }
-    return ( a.toFixed(12) - (b.toFixed(12))) === 0;
+    return a.toFixed(12) - b.toFixed(12) === 0;
 };
 
 function mapUpdated(oldMap, newMap) {
     const centersEqual = isNearlyEqual(newMap.center.x, oldMap.center.x) &&
                           isNearlyEqual(newMap.center.y, oldMap.center.y);
-    return !centersEqual || (newMap.zoom !== oldMap.zoom);
+    return !centersEqual || newMap.zoom !== oldMap.zoom;
+}
+
+/* Transform width and height specified in meters to the units of the specified projection */
+function transformExtent(projection, center, width, height) {
+    let units = CoordinatesUtils.getUnits(projection);
+    if (units === 'ft') {
+        return {width: width / METERS_PER_UNIT.ft, height: height / METERS_PER_UNIT.ft};
+    } else if (units === 'us-ft') {
+        return {width: width / METERS_PER_UNIT['us-ft'], height: height / METERS_PER_UNIT['us-ft']};
+    } else if (units === 'degrees') {
+        return {
+            width: width / (111132.92 - 559.82 * Math.cos(2 * center.y) + 1.175 * Math.cos(4 * center.y)),
+            height: height / (111412.84 * Math.cos(center.y) - 93.5 * Math.cos(3 * center.y))
+        };
+    }
+    return {width, height};
+}
+
+function isSimpleGeomType(geomType) {
+    switch (geomType) {
+        case "MultiPoint": case "MultiLineString": case "MultiPolygon": return false;
+        case "Point": case "LineString": case "Polygon": case "Circle": default: return true;
+    }
+}
+function getSimpleGeomType(geomType = "Point") {
+    switch (geomType) {
+        case "Point": case "LineString": case "Polygon": case "Circle": return geomType;
+        case "MultiPoint": return "Point";
+        case "MultiLineString": return "LineString";
+        case "MultiPolygon": return "Polygon";
+        default: return geomType;
+    }
 }
 
 module.exports = {
@@ -290,5 +322,8 @@ module.exports = {
     getScales,
     getBbox,
     mapUpdated,
-    getCurrentResolution
+    getCurrentResolution,
+    transformExtent,
+    isSimpleGeomType,
+    getSimpleGeomType
 };

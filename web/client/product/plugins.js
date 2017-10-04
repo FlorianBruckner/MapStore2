@@ -14,7 +14,6 @@ module.exports = {
         TOCPlugin: require('../plugins/TOC'),
         BackgroundSwitcherPlugin: require('../plugins/BackgroundSwitcher'),
         MeasurePlugin: require('../plugins/Measure'),
-        MeasureResultsPlugin: require('../plugins/MeasureResults'),
         MapPlugin: require('../plugins/Map'),
         ToolbarPlugin: require('../plugins/Toolbar'),
         DrawerMenuPlugin: require('../plugins/DrawerMenu'),
@@ -32,6 +31,7 @@ module.exports = {
         MapLoadingPlugin: require('../plugins/MapLoading'),
         AboutPlugin: require('./plugins/About'),
         HelpPlugin: require('../plugins/Help'),
+        HelpLinkPlugin: require('../plugins/HelpLink'),
         HomePlugin: require('../plugins/Home'),
         MadeWithLovePlugin: require('./plugins/MadeWithLove'),
         MetadataExplorerPlugin: require('../plugins/MetadataExplorer'),
@@ -62,11 +62,20 @@ module.exports = {
         SaveAsPlugin: require('../plugins/SaveAs'),
         CreateNewMapPlugin: require('../plugins/CreateNewMap'),
         QueryPanelPlugin: require('../plugins/QueryPanel'),
-        FeatureGridPlugin: require('../plugins/FeatureGrid'),
+        WFSDownloadPlugin: require('../plugins/WFSDownload'),
         TutorialPlugin: require('../plugins/Tutorial'),
         ThemeSwitcherPlugin: require('../plugins/ThemeSwitcher'),
         ScrollTopPlugin: require('../plugins/ScrollTop'),
-        GoFull: require('../plugins/GoFull')
+        GoFull: require('../plugins/GoFull'),
+        GlobeViewSwitcherPlugin: require('../plugins/GlobeViewSwitcher'),
+        BackgroundSelectorPlugin: require('../plugins/BackgroundSelector'),
+        SearchServicesConfigPlugin: require('../plugins/SearchServicesConfig'),
+        VersionPlugin: require('../plugins/Version'),
+        CookiePlugin: require('../plugins/Cookie'),
+        NotificationsPlugin: require('../plugins/Notifications'),
+        FeatureEditorPlugin: require('../plugins/FeatureEditor'),
+        AutoMapUpdatePlugin: require('../plugins/AutoMapUpdate')
+
     },
     requires: {
         ReactSwipe: require('react-swipeable-views').default,

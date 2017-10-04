@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
@@ -19,12 +20,13 @@ const Draggable = require('react-draggable');
 
 require('./queryform.css');
 
-const QueryForm = React.createClass({
-    propTypes: {
-        messages: React.PropTypes.object,
-        locale: React.PropTypes.string
-    },
-    renderHeader() {
+class QueryForm extends React.Component {
+    static propTypes = {
+        messages: PropTypes.object,
+        locale: PropTypes.string
+    };
+
+    renderHeader = () => {
         return (
             <div className="handle_querypanel">
                 <span>
@@ -32,7 +34,8 @@ const QueryForm = React.createClass({
                 </span>
             </div>
         );
-    },
+    };
+
     render() {
         return (
             <Localized messages={this.props.messages} locale={this.props.locale}>
@@ -41,7 +44,7 @@ const QueryForm = React.createClass({
                     <Draggable start={{x: 670, y: 15}} handle=".handle_querypanel, .handle_querypanel *">
                         <div>
                             <Panel className="querypanel-container" header={this.renderHeader()} bsStyle="primary">
-                                <SmartQueryForm/>
+                                <SmartQueryForm />
                             </Panel>
                         </div>
                     </Draggable>
@@ -51,8 +54,7 @@ const QueryForm = React.createClass({
             </Localized>
         );
     }
-
-});
+}
 
 module.exports = connect((state) => {
     return {

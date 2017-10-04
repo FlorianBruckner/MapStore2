@@ -19,6 +19,7 @@ const {
     EXPAND_ATTRIBUTE_PANEL,
     EXPAND_SPATIAL_PANEL,
     SELECT_SPATIAL_METHOD,
+    UPDATE_GEOMETRY,
     SELECT_SPATIAL_OPERATION,
     REMOVE_SPATIAL_SELECT,
     SHOW_SPATIAL_DETAILS,
@@ -35,6 +36,12 @@ const {
     ADD_SIMPLE_FILTER_FIELD,
     REMOVE_SIMPLE_FILTER_FIELD,
     REMOVE_ALL_SIMPLE_FILTER_FIELDS,
+    SELECT_VIEWPORT_SPATIAL_METHOD,
+    CHANGE_SPATIAL_ATTRIBUTE,
+    TOGGLE_AUTOCOMPLETE_MENU,
+    SET_AUTOCOMPLETE_MODE,
+    setAutocompleteMode,
+    toggleMenu,
     changeDwithinValue,
     resetZones,
     zoneChange,
@@ -56,8 +63,11 @@ const {
     expandAttributeFilterPanel,
     expandSpatialFilterPanel,
     selectSpatialMethod,
+    updateGeometrySpatialField,
+    selectViewportSpatialMethod,
     selectSpatialOperation,
     removeSpatialSelection,
+    changeSpatialAttribute,
     showSpatialSelectionDetails,
     simpleFilterFieldUpdate,
     addSimpleFilterField,
@@ -77,6 +87,27 @@ describe('Test correctness of the queryform actions', () => {
         expect(retval.groupId).toBe(1);
     });
 
+    it('toggleMenu', () => {
+        let status = true;
+        let rowId = 100;
+
+        var retval = toggleMenu(rowId, status);
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(TOGGLE_AUTOCOMPLETE_MENU);
+        expect(retval.rowId).toBe(rowId);
+        expect(retval.status).toBe(status);
+    });
+
+    it('set autocomplete', () => {
+        let status = true;
+        var retval = setAutocompleteMode(status);
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(SET_AUTOCOMPLETE_MODE);
+        expect(retval.status).toBe(status);
+    });
+
     it('addGroupField', () => {
         let groupId = 1;
         let index = 0;
@@ -87,6 +118,29 @@ describe('Test correctness of the queryform actions', () => {
         expect(retval.type).toBe(ADD_GROUP_FIELD);
         expect(retval.groupId).toBe(1);
         expect(retval.index).toBe(0);
+    });
+
+    it('updateGeometrySpatialField', () => {
+        const geometry = {center: [0, 1], coordinates: []};
+        const retval = updateGeometrySpatialField(geometry);
+
+        expect(retval).toExist();
+        expect(retval.type).toBe(UPDATE_GEOMETRY);
+        expect(retval.geometry).toBe(geometry);
+    });
+
+    it('selectViewportSpatialMethod', () => {
+        const retval = selectViewportSpatialMethod();
+        expect(retval).toExist();
+        expect(retval.type).toBe(SELECT_VIEWPORT_SPATIAL_METHOD);
+    });
+
+    it('changeSpatialAttribute', () => {
+        const attribute = "some value";
+        const retval = changeSpatialAttribute(attribute);
+        expect(retval).toExist();
+        expect(retval.type).toBe(CHANGE_SPATIAL_ATTRIBUTE);
+        expect(retval.attribute).toBe(attribute);
     });
 
     it('removeFilterField', () => {
@@ -279,13 +333,13 @@ describe('Test correctness of the queryform actions', () => {
             try {
                 expect(e).toExist();
                 done();
-            } catch(ex) {
+            } catch (ex) {
                 done(ex);
             }
         });
     });
 
-    /*it('openMenu', () => {
+    /* it('openMenu', () => {
         let retval = openMenu(true, 1);
 
         expect(retval).toExist();

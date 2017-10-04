@@ -46,6 +46,19 @@ module.exports = {
                 drawer: {
                     enabled: false,
                     menu: "1"
+                },
+                RefreshLayers: {
+                    enabled: false,
+                    options: {
+                        bbox: true,
+                        search: true,
+                        title: false,
+                        dimensions: false
+                    }
+                },
+                cookie: {
+                    enabled: false,
+                    seeMore: false
                 }
             }
         },

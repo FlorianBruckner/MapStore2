@@ -49,7 +49,7 @@ const searchEpic = action$ =>
             .map((service) =>
                 Rx.Observable.defer(() =>
                     API.Utils.getService(service.type)(action.searchText, service.options)
-                        .then( (response= []) => response.map(result => ({...result, __SERVICE__: service, __PRIORITY__: service.priority || 0}))
+                        .then( (response = []) => response.map(result => ({...result, __SERVICE__: service, __PRIORITY__: service.priority || 0}))
                 ))
                 .retryWhen(errors => errors.delay(200).scan((count, err) => {
                     if ( count >= 2) {
@@ -93,7 +93,7 @@ const searchItemSelected = action$ =>
                     // retrieve geometry from geomService or pass the item directly
                     return Rx.Observable.fromPromise(
                         API.Utils.getService(item.__SERVICE__.geomService.type)("", assign( {}, item.__SERVICE__.geomService.options, { staticFilter } ))
-                            .then(res => assign({}, item, {geometry: res[0].geometry} ) )
+                            .then(res => assign({}, item, {geometry: CoordinatesUtils.mergeToPolyGeom(res)} ) )
                     );
                 }
                 return Rx.Observable.of(action.item);
@@ -109,16 +109,16 @@ const searchItemSelected = action$ =>
                 let actions = [
                     changeMapView(newCenter, newZoom, {
                         bounds: {
-                           minx: bbox[0],
-                           miny: bbox[1],
-                           maxx: bbox[2],
-                           maxy: bbox[3]
+                            minx: bbox[0],
+                            miny: bbox[1],
+                            maxx: bbox[2],
+                            maxy: bbox[3]
                         },
                         crs: "EPSG:4326",
                         rotation: 0
                     }, action.mapConfig.size, null, action.mapConfig.projection),
-                     addMarker(item)
-                    ];
+                    addMarker(item)
+                ];
                 return actions;
             });
 

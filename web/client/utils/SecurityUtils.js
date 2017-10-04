@@ -47,11 +47,20 @@ const SecurityUtils = {
     },
 
     /**
-     * Returns the current user token value.
+     * Returns the current user access token value.
      */
     getToken() {
         const securityInfo = this.getSecurityInfo();
         return securityInfo && securityInfo.token;
+    },
+
+    /**
+     * Returns the current user refresh token value.
+     * The refresh token is used to get a new access token.
+     */
+    getRefreshToken() {
+        const securityInfo = this.getSecurityInfo();
+        return securityInfo && securityInfo.refresh_token;
     },
 
     /**
@@ -123,6 +132,16 @@ const SecurityUtils = {
     },
 
     /**
+     * Returns the authentication rule that should be used for the provided URL.
+     * We go through the authentication rules and find the first one that matchs
+     * the provided URL, if no rule matchs the provided URL undefined is returned.
+     */
+    getAuthenticationRule: function(url) {
+        return head(this.getAuthenticationRules().filter(
+            rule => rule && rule.urlPattern && url.match(new RegExp(rule.urlPattern, "i"))));
+    },
+
+    /**
      * This method will add query parameter based authentications to an url.
      */
     addAuthenticationToUrl: function(url) {
@@ -145,16 +164,22 @@ const SecurityUtils = {
             return parameters;
         }
         switch (this.getAuthenticationMethod(url)) {
-            case 'authkey':
-                const token = this.getToken();
-                if (!token) {
-                    return parameters;
-                }
-                return assign(parameters || {}, {'authkey': token});
-            default:
-                // we cannot handle the required authentication method
+        case 'authkey':
+            const token = this.getToken();
+            if (!token) {
                 return parameters;
+            }
+            const authParam = this.getAuthKeyParameter(url);
+            return assign(parameters || {}, {[authParam]: token});
+        default:
+                // we cannot handle the required authentication method
+            return parameters;
         }
+    },
+    getAuthKeyParameter: function(url) {
+        const foundRule = head(this.getAuthenticationRules().filter(
+            rule => rule && rule.urlPattern && url.match(new RegExp(rule.urlPattern, "i"))));
+        return foundRule && foundRule.authkeyParamName ? foundRule.authkeyParamName : 'authkey';
     }
 };
 

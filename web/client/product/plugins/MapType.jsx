@@ -1,4 +1,5 @@
-/**
+const PropTypes = require('prop-types');
+/*
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
  *
@@ -9,40 +10,45 @@ const React = require('react');
 const {Label, FormControl, FormGroup} = require('react-bootstrap');
 const Message = require('../../components/I18N/Message');
 const {compose} = require('redux');
-const {changeMapType} = require('../actions/home');
+const {changeMapType} = require('../../actions/maptype');
 const {connect} = require('react-redux');
 const assign = require('object-assign');
 
-const MapType = React.createClass({
-    propTypes: {
-        style: React.PropTypes.object,
-        className: React.PropTypes.object,
-        mapType: React.PropTypes.string,
-        onChangeMapType: React.PropTypes.func
-    },
-    getDefaultProps() {
-        return {
-            mapType: 'leaflet',
-            onChangeMapType: () => {}
-        };
-    },
+class MapType extends React.Component {
+    static propTypes = {
+        style: PropTypes.object,
+        className: PropTypes.object,
+        mapType: PropTypes.string,
+        mapTypes: PropTypes.array,
+        onChangeMapType: PropTypes.func
+    };
+
+    static defaultProps = {
+        mapType: 'leaflet',
+        onChangeMapType: () => {},
+        mapTypes: [
+            { key: "leaflet", label: "Leaflet"},
+            { key: "openlayers", label: "OpenLayers"},
+            { key: "cesium", label: "Cesium"}
+        ]
+    };
+
     render() {
         return (
             <div id="mapstore-maptype">
                 <Label><Message msgId="manager.mapTypes_combo"/></Label>
                 <FormGroup bsSize="small">
                     <FormControl value={this.props.mapType} componentClass="select" ref="mapType" onChange={this.props.onChangeMapType}>
-                        <option value="leaflet" key="leaflet">Leaflet</option>
-                        <option value="openlayers" key="openlayer">OpenLayers</option>
+                        {this.props.mapTypes.map(type => <option value={type.key} key={type.key}>{type.label}</option>)}
                     </FormControl>
                 </FormGroup>
         </div>
         );
     }
-});
+}
 
 const MapTypePlugin = connect((state) => ({
-    mapType: state.home && state.home.mapType || 'leaflet'
+    mapType: state.maptype && state.maptype.mapType || 'leaflet'
 }), {
     onChangeMapType: compose(changeMapType, (event) => event.target.value)
 })(MapType);
@@ -56,5 +62,5 @@ module.exports = {
             priority: 1
         }
     }),
-    reducers: {home: require('../reducers/home')}
+    reducers: {maptype: require('../../reducers/maptype')}
 };

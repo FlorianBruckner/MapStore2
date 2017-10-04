@@ -9,18 +9,22 @@
 const CHANGE_LAYER_PROPERTIES = 'CHANGE_LAYER_PROPERTIES';
 const CHANGE_GROUP_PROPERTIES = 'CHANGE_GROUP_PROPERTIES';
 const TOGGLE_NODE = 'TOGGLE_NODE';
+const CONTEXT_NODE = 'CONTEXT_NODE';
 const SORT_NODE = 'SORT_NODE';
 const REMOVE_NODE = 'REMOVE_NODE';
 const UPDATE_NODE = 'UPDATE_NODE';
 const LAYER_LOADING = 'LAYER_LOADING';
 const LAYER_LOAD = 'LAYER_LOAD';
 const LAYER_ERROR = 'LAYER_ERROR';
-const INVALID_LAYER = 'INVALID_LAYER';
 const ADD_LAYER = 'ADD_LAYER';
 const REMOVE_LAYER = 'REMOVE_LAYER';
 const SHOW_SETTINGS = 'SHOW_SETTINGS';
 const HIDE_SETTINGS = 'HIDE_SETTINGS';
 const UPDATE_SETTINGS = 'UPDATE_SETTINGS';
+const REFRESH_LAYERS = 'REFRESH_LAYERS';
+const LAYERS_REFRESHED = 'LAYERS_REFRESHED';
+const LAYERS_REFRESH_ERROR = 'LAYERS_REFRESH_ERROR';
+const BROWSE_DATA = 'LAYERS:BROWSE_DATA';
 
 function showSettings(node, nodeType, options) {
     return {
@@ -71,6 +75,13 @@ function toggleNode(node, type, status) {
     };
 }
 
+function contextNode(node) {
+    return {
+        type: CONTEXT_NODE,
+        node: node
+    };
+}
+
 function sortNode(node, order, sortLayers = null) {
     return {
         type: SORT_NODE,
@@ -80,11 +91,12 @@ function sortNode(node, order, sortLayers = null) {
     };
 }
 
-function removeNode(node, type) {
+function removeNode(node, type, properties) {
     return {
         type: REMOVE_NODE,
         node: node,
-        nodeType: type
+        nodeType: type,
+        properties
     };
 }
 
@@ -133,18 +145,48 @@ function removeLayer(layerId) {
         layerId: layerId
     };
 }
-
-function invalidLayer(layerType, options) {
+function refreshLayerVersion(layer, version) {
     return {
-        type: INVALID_LAYER,
-        layerType,
+        type: CHANGE_LAYER_PROPERTIES,
+        layer,
+        newProperties: {
+            _v_: version || new Date().getTime()
+        }
+    };
+}
+function refreshLayers(layers, options) {
+    return {
+        type: REFRESH_LAYERS,
+        layers,
         options
     };
 }
 
-module.exports = {changeLayerProperties, changeGroupProperties, toggleNode, sortNode, removeNode, invalidLayer,
-    updateNode, layerLoading, layerLoad, layerError, addLayer, removeLayer, showSettings, hideSettings, updateSettings,
+function layersRefreshed(layers) {
+    return {
+        type: LAYERS_REFRESHED,
+        layers
+    };
+}
+
+function layersRefreshError(layers, error) {
+    return {
+        type: LAYERS_REFRESH_ERROR,
+        layers,
+        error
+    };
+}
+function browseData(layer) {
+    return {
+        type: BROWSE_DATA,
+        layer
+    };
+}
+
+module.exports = {changeLayerProperties, changeGroupProperties, toggleNode, sortNode, removeNode, contextNode,
+    updateNode, layerLoading, layerLoad, layerError, addLayer, removeLayer, showSettings, hideSettings, updateSettings, refreshLayers,
+    layersRefreshed, layersRefreshError, refreshLayerVersion, browseData,
     CHANGE_LAYER_PROPERTIES, CHANGE_GROUP_PROPERTIES, TOGGLE_NODE, SORT_NODE,
     REMOVE_NODE, UPDATE_NODE, LAYER_LOADING, LAYER_LOAD, LAYER_ERROR, ADD_LAYER, REMOVE_LAYER,
-    SHOW_SETTINGS, HIDE_SETTINGS, UPDATE_SETTINGS, INVALID_LAYER
+    SHOW_SETTINGS, HIDE_SETTINGS, UPDATE_SETTINGS, CONTEXT_NODE, REFRESH_LAYERS, LAYERS_REFRESHED, LAYERS_REFRESH_ERROR, BROWSE_DATA
 };

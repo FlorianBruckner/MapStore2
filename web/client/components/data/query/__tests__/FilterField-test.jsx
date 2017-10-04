@@ -38,31 +38,34 @@ describe('FilterField', () => {
 
         const attributes = [
             {
-               attribute: "Attribute1",
-               label: "Attribute1",
-               type: "list",
-               values: [
+                attribute: "Attribute1",
+                label: "Attribute1",
+                type: "list",
+                values: [
                    {id: "attribute1", name: "attribute1"},
                    {id: "Attribute2", name: "attribute2"},
                    {id: "attribute3", name: "attribute3"},
                    {id: "attribute4", name: "attribute4"},
                    {id: "attribute5", name: "attribute5"}
-               ],
-               valueId: "id",
-               valueLabel: "name"
+                ],
+                valueId: "id",
+                valueLabel: "name"
             }, {
-               attribute: "Attribute2",
-               label: "Attribute2",
-               type: "list",
-               values: [
+                attribute: "Attribute2",
+                label: "Attribute2",
+                type: "list",
+                values: [
                    {id: "attribute6", name: "attribute6"},
                    {id: "Attribute7", name: "Attribute7"},
                    {id: "attribute8", name: "attribute8"},
                    {id: "attribute9", name: "attribute9"},
                    {id: "attribute10", name: "attribute10"}
-               ],
-               valueId: "id",
-               valueLabel: "name"
+                ],
+                valueId: "id",
+                valueLabel: "name",
+                dependson: {
+                    field: "Attribute1"
+                }
             }
         ];
 
@@ -110,6 +113,9 @@ describe('FilterField', () => {
 
         const valueSelect = filterFieldDOMNode.actual.getElementsByClassName('rw-input')[2];
         expect(valueSelect.childNodes[0].nodeValue).toBe("attribute1");
+
+        filterfield.updateFieldElement(200, "value", "value", "string", {currentPage: 0});
+        filterfield.updateExceptionFieldElement(200, "error");
     });
 
     it('creates the FilterField component with fieldOptions', () => {
@@ -123,19 +129,19 @@ describe('FilterField', () => {
 
         const attributes = [
             {
-               attribute: "Attribute1",
-               label: "Attribute1",
-               type: "list",
-               values: [
+                attribute: "Attribute1",
+                label: "Attribute1",
+                type: "list",
+                values: [
                    {id: "attribute1", name: "attribute1"},
                    {id: "Attribute2", name: "attribute2"},
                    {id: "attribute3", name: "attribute3"},
                    {id: "attribute4", name: "attribute4"},
                    {id: "attribute5", name: "attribute5"}
-               ],
-               valueId: "id",
-               valueLabel: "name",
-               fieldOptions: {"style": {display: "none"}}
+                ],
+                valueId: "id",
+                valueLabel: "name",
+                fieldOptions: {"style": {display: "none"}}
             }
         ];
 
@@ -184,5 +190,108 @@ describe('FilterField', () => {
         const valueSelectContainer = filterFieldDOMNode.actual.getElementsByClassName('col-xs-5')[0].childNodes[0];
         expect(valueSelectContainer.style.display).toBe('none');
 
+    });
+
+    it('tests the FilterField actions', () => {
+
+        const actions = {
+            onUpdateField: () => {},
+            onUpdateExceptionField: () => {},
+            onChangeCascadingValue: () => {}
+        };
+
+        const filterField = {
+            attribute: "attribute"
+        };
+
+        const attributes = [
+            {
+                attribute: "Attribute1",
+                label: "Attribute1",
+                type: "list",
+                values: [
+                   {id: "attribute1", name: "attribute1"},
+                   {id: "Attribute2", name: "attribute2"},
+                   {id: "attribute3", name: "attribute3"},
+                   {id: "attribute4", name: "attribute4"},
+                   {id: "attribute5", name: "attribute5"}
+                ],
+                valueId: "id",
+                valueLabel: "name",
+                fieldOptions: {"style": {display: "none"}},
+                dependson: {
+                    field: "attribute"
+                }
+            }
+        ];
+
+        let spyUpdateField = expect.spyOn(actions, 'onUpdateField');
+        const spyUpdateExceptionField = expect.spyOn(actions, 'onUpdateExceptionField');
+        const spyChangeCascadingValue = expect.spyOn(actions, 'onChangeCascadingValue');
+
+        const filterfield = ReactDOM.render(<FilterField filterField={filterField} attributes={attributes} onUpdateField={actions.onUpdateField} onChangeCascadingValue={actions.onChangeCascadingValue} onUpdateExceptionField={actions.onUpdateExceptionField}/>, document.getElementById("container"));
+
+        filterfield.props.onUpdateField();
+        expect(filterfield).toExist();
+        filterfield.updateFieldElement(201, "name", "value", "string", {currentPage: 0});
+        expect(spyUpdateField).toHaveBeenCalled();
+        expect(spyChangeCascadingValue).toNotHaveBeenCalled();
+        expect(spyUpdateField).toHaveBeenCalledWith(201, "name", "value", "string", {currentPage: 0});
+
+        filterfield.updateFieldElement(204, "value", "value", "boolean", {currentPage: 1});
+        expect(spyUpdateField).toHaveBeenCalled();
+        // expect(spyUpdateField).toHaveBeenCalledWith(204, "value", "value", "boolean", {currentPage: 1});
+        expect(spyChangeCascadingValue).toHaveBeenCalled();
+        expect(spyChangeCascadingValue).toHaveBeenCalledWith(attributes);
+
+        filterfield.updateExceptionFieldElement(200, 'error');
+        expect(spyUpdateExceptionField).toHaveBeenCalled();
+        expect(spyUpdateExceptionField).toHaveBeenCalledWith(200, 'error');
+        expect.restoreSpies();
+    });
+
+    it('tests the FilterField actions without dependson field attribute', () => {
+
+        const actions = {
+            onUpdateField: () => {},
+            onUpdateExceptionField: () => {},
+            onChangeCascadingValue: () => {}
+        };
+
+        const filterField = {
+            attribute: "attribute"
+        };
+
+        const attributes = [
+            {
+                attribute: "Attribute1",
+                label: "Attribute1",
+                type: "list",
+                values: [
+                   {id: "attribute1", name: "attribute1"},
+                   {id: "Attribute2", name: "attribute2"},
+                   {id: "attribute3", name: "attribute3"},
+                   {id: "attribute4", name: "attribute4"},
+                   {id: "attribute5", name: "attribute5"}
+                ],
+                valueId: "id",
+                valueLabel: "name",
+                fieldOptions: {"style": {display: "none"}},
+                dependson: {}
+            }
+        ];
+
+        const spyUpdateField = expect.spyOn(actions, 'onUpdateField');
+        const spyChangeCascadingValue = expect.spyOn(actions, 'onChangeCascadingValue');
+
+        const filterfield = ReactDOM.render(<FilterField filterField={filterField} attributes={attributes} onUpdateField={actions.onUpdateField} onChangeCascadingValue={actions.onChangeCascadingValue} onUpdateExceptionField={actions.onUpdateExceptionField}/>, document.getElementById("container"));
+
+        expect(filterfield).toExist();
+        filterfield.updateFieldElement(200, "value", "value", "string", {});
+        expect(spyUpdateField).toHaveBeenCalled();
+        // expect(spyUpdateField).toHaveBeenCalledWith(200, "value", "value", "string");
+        expect(spyChangeCascadingValue).toNotHaveBeenCalled();
+
+        expect.restoreSpies();
     });
 });

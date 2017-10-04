@@ -14,10 +14,11 @@ const startApp = () => {
     const ConfigUtils = require('../utils/ConfigUtils');
 
     const {loadMaps} = require('../actions/maps');
+    const {loadVersion} = require('../actions/version');
 
     const StandardApp = require('../components/app/StandardApp');
 
-    const {pages, pluginsDef, initialState, storeOpts} = require('./appConfig');
+    const {pages, pluginsDef, initialState, storeOpts, appEpics = {}} = require('./appConfig');
 
     const StandardRouter = connect((state) => ({
         locale: state.locale || {},
@@ -25,16 +26,18 @@ const startApp = () => {
     }))(require('../components/app/StandardRouter'));
 
     const appStore = require('../stores/StandardStore').bind(null, initialState, {
-        home: require('./reducers/home'),
+        maptype: require('../reducers/maptype'),
         maps: require('../reducers/maps')
-    }, {});
+    }, appEpics);
 
     const initialActions = [
-        () => loadMaps(ConfigUtils.getDefaults().geoStoreUrl, ConfigUtils.getDefaults().initialMapFilter || "*")
+        () => loadMaps(ConfigUtils.getDefaults().geoStoreUrl, ConfigUtils.getDefaults().initialMapFilter || "*"),
+        loadVersion
     ];
 
     const appConfig = {
         storeOpts,
+        appEpics,
         appStore,
         pluginsDef,
         initialActions,
@@ -51,6 +54,6 @@ const startApp = () => {
 if (!global.Intl ) {
     // Ensure Intl is loaded, then call the given callback
     LocaleUtils.ensureIntl(startApp);
-}else {
+} else {
     startApp();
 }

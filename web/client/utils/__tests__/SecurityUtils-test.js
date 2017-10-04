@@ -46,7 +46,7 @@ const userC = assign({}, userA, {
         name: "description",
         value: "admin user"
     }
-]});
+    ]});
 
 const securityInfoC = {
     user: userC,
@@ -55,16 +55,16 @@ const securityInfoC = {
 
 const authenticationRules = [
     {
-      "urlPattern": ".*geoserver.*",
-      "method": "authkey"
+        "urlPattern": ".*geoserver.*",
+        "method": "authkey"
     },
     {
-      "urlPattern": ".*not-supported.*",
-      "method": "not-supported"
+        "urlPattern": ".*not-supported.*",
+        "method": "not-supported"
     },
     {
-      "urlPattern": ".*some-site.*",
-      "method": "basic"
+        "urlPattern": ".*some-site.*",
+        "method": "basic"
     }
 ];
 
@@ -193,5 +193,11 @@ describe('Test security utils methods', () => {
         expect.spyOn(SecurityUtils, 'getSecurityInfo').andReturn(securityInfoC);
         urlWithAuthentication = SecurityUtils.addAuthenticationToUrl('http://www.some-site.com/geoserver?parameter1=value1&parameter2=value2');
         expect(urlWithAuthentication).toBe('http://www.some-site.com/geoserver?parameter1=value1&parameter2=value2');
+    });
+    it('test addAuthenticationParameter for authkey', () => {
+        expect.spyOn(SecurityUtils, 'getAuthenticationMethod').andReturn("authkey");
+        expect.spyOn(SecurityUtils, 'getToken').andReturn("goodtoken");
+        expect.spyOn(SecurityUtils, 'isAuthenticationActivated').andReturn(true);
+        expect(SecurityUtils.addAuthenticationParameter("a test url", null)).toEqual({'authkey': 'goodtoken'});
     });
 });

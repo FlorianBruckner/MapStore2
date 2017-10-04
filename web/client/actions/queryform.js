@@ -16,7 +16,10 @@ const CHANGE_CASCADING_VALUE = 'CHANGE_CASCADING_VALUE';
 const EXPAND_ATTRIBUTE_PANEL = 'EXPAND_ATTRIBUTE_PANEL';
 const EXPAND_SPATIAL_PANEL = 'EXPAND_SPATIAL_PANEL';
 const SELECT_SPATIAL_METHOD = 'SELECT_SPATIAL_METHOD';
+const SELECT_VIEWPORT_SPATIAL_METHOD = 'SELECT_VIEWPORT_SPATIAL_METHOD';
+const UPDATE_GEOMETRY = 'UPDATE_GEOMETRY';
 const SELECT_SPATIAL_OPERATION = 'SELECT_SPATIAL_OPERATION';
+const CHANGE_SPATIAL_ATTRIBUTE = 'CHANGE_SPATIAL_ATTRIBUTE';
 const REMOVE_SPATIAL_SELECT = 'REMOVE_SPATIAL_SELECT';
 const SHOW_SPATIAL_DETAILS = 'SHOW_SPATIAL_DETAILS';
 // const QUERY_FORM_SEARCH = 'QUERY_FORM_SEARCH';
@@ -38,6 +41,10 @@ const SIMPLE_FILTER_FIELD_UPDATE = 'SIMPLE_FILTER_FIELD_UPDATE';
 const ADD_SIMPLE_FILTER_FIELD = 'ADD_SIMPLE_FILTER_FIELD';
 const REMOVE_SIMPLE_FILTER_FIELD = 'REMOVE_SIMPLE_FILTER_FIELD';
 const REMOVE_ALL_SIMPLE_FILTER_FIELDS = 'REMOVE_ALL_SIMPLE_FILTER_FIELDS';
+const UPDATE_FILTER_FIELD_OPTIONS = 'UPDATE_FILTER_FIELD_OPTIONS';
+const LOADING_FILTER_FIELD_OPTIONS = 'LOADING_FILTER_FIELD_OPTIONS';
+const SET_AUTOCOMPLETE_MODE = 'SET_AUTOCOMPLETE_MODE';
+const TOGGLE_AUTOCOMPLETE_MENU = 'TOGGLE_AUTOCOMPLETE_MENU';
 
 const axios = require('../libs/ajax');
 
@@ -63,13 +70,22 @@ function removeFilterField(rowId) {
     };
 }
 
-function updateFilterField(rowId, fieldName, fieldValue, fieldType) {
+function toggleMenu(rowId, status) {
+    return {
+        type: TOGGLE_AUTOCOMPLETE_MENU,
+        rowId,
+        status
+    };
+}
+
+function updateFilterField(rowId, fieldName, fieldValue, fieldType, fieldOptions = {}) {
     return {
         type: UPDATE_FILTER_FIELD,
         rowId: rowId,
         fieldName: fieldName,
         fieldValue: fieldValue,
-        fieldType: fieldType
+        fieldType: fieldType,
+        fieldOptions
     };
 }
 
@@ -86,6 +102,13 @@ function updateLogicCombo(groupId, logic) {
         type: UPDATE_LOGIC_COMBO,
         groupId: groupId,
         logic: logic
+    };
+}
+
+function setAutocompleteMode(status) {
+    return {
+        type: SET_AUTOCOMPLETE_MODE,
+        status
     };
 }
 
@@ -125,11 +148,30 @@ function selectSpatialMethod(method, fieldName) {
     };
 }
 
+function selectViewportSpatialMethod() {
+    return {
+        type: SELECT_VIEWPORT_SPATIAL_METHOD
+    };
+}
+function updateGeometrySpatialField(geometry) {
+    return {
+        type: UPDATE_GEOMETRY,
+        geometry
+    };
+}
+
 function selectSpatialOperation(operation, fieldName) {
     return {
         type: SELECT_SPATIAL_OPERATION,
         fieldName: fieldName,
         operation: operation
+    };
+}
+
+function changeSpatialAttribute(attribute) {
+    return {
+        type: CHANGE_SPATIAL_ATTRIBUTE,
+        attribute
     };
 }
 
@@ -153,13 +195,12 @@ function changeDwithinValue(distance) {
     };
 }
 
-/*function querySearchResponse(response) {
+/* function querySearchResponse(response) {
     return {
         type: QUERY_FORM_SEARCH,
         response: response
     };
 }
-
 function wfsLoadError(e) {
     return {
         type: WFS_LOAD_ERROR,
@@ -172,7 +213,7 @@ function query(seachURL, data) {
         type: SHOW_GENERATED_FILTER,
         data: data
     };
-    /*return (dispatch) => {
+    /* return (dispatch) => {
         return axios.post(seachURL, data).then((response) => {
             dispatch(querySearchResponse(response.data));
         }).catch((e) => {
@@ -227,7 +268,7 @@ function zoneGetValues(url, filter, id) {
             if (typeof config !== "object") {
                 try {
                     config = JSON.parse(config);
-                } catch(e) {
+                } catch (e) {
                     dispatch(zoneSearchError('Search result broken (' + url + ":   " + filter + '): ' + e.message, id));
                 }
             }
@@ -240,7 +281,7 @@ function zoneGetValues(url, filter, id) {
     };
 }
 
-/*function openMenu(active, id) {
+/* function openMenu(active, id) {
     return {
         type: OPEN_MENU,
         active: active,
@@ -284,6 +325,23 @@ function removeAllSimpleFilterFields() {
     };
 }
 
+function loadingFilterFieldOptions(status, filterField) {
+    return {
+        type: LOADING_FILTER_FIELD_OPTIONS,
+        status,
+        filterField
+    };
+}
+
+function updateFilterFieldOptions(filterField, options, valuesCount) {
+    return {
+        type: UPDATE_FILTER_FIELD_OPTIONS,
+        filterField,
+        options,
+        valuesCount
+    };
+}
+
 module.exports = {
     ADD_FILTER_FIELD,
     REMOVE_FILTER_FIELD,
@@ -297,6 +355,7 @@ module.exports = {
     EXPAND_SPATIAL_PANEL,
     SELECT_SPATIAL_METHOD,
     SELECT_SPATIAL_OPERATION,
+    CHANGE_SPATIAL_ATTRIBUTE,
     REMOVE_SPATIAL_SELECT,
     SHOW_SPATIAL_DETAILS,
     // QUERY_FORM_SEARCH,
@@ -314,6 +373,16 @@ module.exports = {
     ADD_SIMPLE_FILTER_FIELD,
     REMOVE_SIMPLE_FILTER_FIELD,
     REMOVE_ALL_SIMPLE_FILTER_FIELDS,
+    SELECT_VIEWPORT_SPATIAL_METHOD,
+    UPDATE_GEOMETRY,
+    UPDATE_FILTER_FIELD_OPTIONS,
+    LOADING_FILTER_FIELD_OPTIONS,
+    SET_AUTOCOMPLETE_MODE,
+    TOGGLE_AUTOCOMPLETE_MENU,
+    setAutocompleteMode,
+    loadingFilterFieldOptions,
+    updateGeometrySpatialField,
+    selectViewportSpatialMethod,
     resetZones,
     zoneChange,
     // openMenu,
@@ -333,6 +402,7 @@ module.exports = {
     expandSpatialFilterPanel,
     selectSpatialMethod,
     selectSpatialOperation,
+    changeSpatialAttribute,
     removeSpatialSelection,
     showSpatialSelectionDetails,
     query,
@@ -341,7 +411,9 @@ module.exports = {
     simpleFilterFieldUpdate,
     addSimpleFilterField,
     removeSimpleFilterField,
-    removeAllSimpleFilterFields
+    removeAllSimpleFilterFields,
+    updateFilterFieldOptions,
+    toggleMenu
     // wfsLoadError,
     // querySearchResponse
 };

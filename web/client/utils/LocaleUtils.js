@@ -13,36 +13,43 @@ const en = require('react-intl/locale-data/en');
 const it = require('react-intl/locale-data/it');
 const fr = require('react-intl/locale-data/fr');
 const de = require('react-intl/locale-data/de');
+const es = require('react-intl/locale-data/es');
 
-addLocaleData([...en, ...it, ...fr, ...de]);
+addLocaleData([...en, ...it, ...fr, ...de, ...es]);
 
 let supportedLocales = {
-     "it": {
-         code: "it-IT",
-         description: "Italiano"
-     },
-     "en": {
+    "it": {
+        code: "it-IT",
+        description: "Italiano"
+    },
+    "en": {
         code: "en-US",
         description: "English"
-     },
-     "fr": {
-       code: "fr-FR",
-       description: "Français"
-     },
-     "de": {
-       code: "de-DE",
-       description: "Deutsch"
-     }
+    },
+    "fr": {
+        code: "fr-FR",
+        description: "Français"
+    },
+    "de": {
+        code: "de-DE",
+        description: "Deutsch"
+    },
+
+    "es": {
+        code: "es-ES",
+        description: "Español"
+    }
 };
 
 const LocaleUtils = {
     ensureIntl(callback) {
-        require.ensure(['intl', 'intl/locale-data/jsonp/en.js', 'intl/locale-data/jsonp/it.js', 'intl/locale-data/jsonp/fr.js', 'intl/locale-data/jsonp/de.js'], (require) => {
+        require.ensure(['intl', 'intl/locale-data/jsonp/en.js', 'intl/locale-data/jsonp/it.js', 'intl/locale-data/jsonp/fr.js', 'intl/locale-data/jsonp/de.js', 'intl/locale-data/jsonp/es.js'], (require) => {
             global.Intl = require('intl');
             require('intl/locale-data/jsonp/en.js');
             require('intl/locale-data/jsonp/it.js');
             require('intl/locale-data/jsonp/fr.js');
             require('intl/locale-data/jsonp/de.js');
+            require('intl/locale-data/jsonp/es.js');
             if (callback) {
                 callback();
             }
@@ -70,10 +77,12 @@ const LocaleUtils = {
         return LocaleUtils.getLocale(url.parse(window.location.href, true).query);
     },
     getLocale: function(query) {
+        const key = Object.keys(supportedLocales)[0];
+        const defaultLocale = supportedLocales.en ? { key: 'en', locale: supportedLocales.en } : { key, locale: supportedLocales[key] };
         let locale = supportedLocales[
-            LocaleUtils.normalizeLocaleCode(query.locale || (navigator ? navigator.language || navigator.browserLanguage : "en"))
+            LocaleUtils.normalizeLocaleCode(query.locale || (navigator ? navigator.language || navigator.browserLanguage : defaultLocale.key))
         ];
-        return locale ? locale.code : "en-US";
+        return locale ? locale.code : defaultLocale.locale.code;
     },
     getSupportedLocales: function() {
         return supportedLocales;

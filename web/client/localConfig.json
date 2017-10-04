@@ -1,10 +1,10 @@
 {
 
     "proxyUrl": {
-        "url": "http://localhost:8083/geostore-webapp/proxy/?url=",
-        "useCORS": ["https://demo.geo-solutions.it/geoserver", "http://localhost:8083/geostore-webapp/rest/", "https://sdigeot-free.austrocontrol.at/", "http://nominatim.openstreetmap.org"]
+        "url": "http://localhost:9083/geostore-webapp/proxy/?url=",
+        "useCORS": ["https://demo.geo-solutions.it/geoserver", "http://localhost:9083/geostore-webapp/rest/", "https://sdigeot-free.austrocontrol.at/", "http://nominatim.openstreetmap.org"]
     },
-    "geoStoreUrl": "http://localhost:8083/geostore-webapp/rest/",
+    "geoStoreUrl": "http://localhost:9083/geostore-webapp/rest/",
     "printUrl": "https://demo.geo-solutions.it/geoserver/pdf/info.json",
     "bingApiKey": "AhuXBu7ipR1gNbBfXhtUAyCZ6rkC5PkWpxs2MnMRZ1ZupxQfivjLCch22ozKSCAn",
     "mapquestApiKey": "__API_KEY_MAPQUEST__",
@@ -15,6 +15,7 @@
     "defaultMapOptions": {
       "cesium": {
           "flyTo": true,
+          "navigationTools": true,
           "terrainProvider": {
               "type": "cesium",
               "url": "https://assets.agi.com/stk-terrain/world",
@@ -24,15 +25,33 @@
     },
     "authenticationRules": [{
         "urlPattern": ".*geostore.*",
-        "method": "basic"
+        "method": "bearer"
     }],
+    "monitorState": [
+      {"name": "routing", "path": "routing.location.pathname"},
+      {"name": "featuregridmode", "path": "featuregrid.mode"}],
     "plugins": {
         "mobile": [{
                 "name": "Map",
                 "cfg": {
                     "tools": ["locate"]
                 }
-            }, "DrawerMenu", {
+            }, "Version", "DrawerMenu",
+            {
+                "name": "BackgroundSelector",
+                "cfg": {
+                    "bottom": 40,
+                    "dimensions": {
+                    "side": 65,
+                    "sidePreview": 65,
+                    "frame": 3,
+                    "margin": 5,
+                    "label": false,
+                    "vertical": true
+                   }
+                }
+            },
+            {
                 "name": "Identify",
                 "showIn": ["Settings"],
                 "cfg": {
@@ -63,9 +82,9 @@
             }, "Home", "TOC", {
                 "name": "Tutorial",
                 "cfg": {
-                    "preset": "mapMobile"
+                    "preset": "default_mobile_tutorial"
                 }
-            }, "BackgroundSwitcher", {
+            }, {
                 "name": "Settings",
                 "cfg": {
                     "wrap": true
@@ -109,9 +128,17 @@
                     }
                 }
             }, "Login",
-            "OmniBar", "BurgerMenu", "Expander"
+            "OmniBar", "BurgerMenu", "Expander", "GlobeViewSwitcher", {
+              "name": "Cookie",
+              "cfg": {
+                "externalCookieUrl" : "",
+                "declineUrl" : "http://www.google.com"
+              }
+            }
         ],
-        "desktop": ["Map", "Help", "Share", "DrawerMenu", {
+
+        "desktop": ["Map", "AutoMapUpdate", "HelpLink", "Share", "DrawerMenu", "Version", "Notifications", {"name": "BackgroundSelector", "cfg": { "bottom": 40 } },
+            {
                 "name": "Identify",
                 "showIn": ["IdentifyBar", "Settings"],
                 "cfg": {
@@ -131,17 +158,45 @@
                         "alwaysVisible": true
                     }
                 }
-            }, "Home", "FeatureGrid", {
+            }, "Home", "FeatureEditor", "WFSDownload",
+            {
+              "name": "QueryPanel",
+              "cfg": {
+                  "activateQueryTool": true,
+                  "spatialOperations": [
+                      {"id": "INTERSECTS", "name": "queryform.spatialfilter.operations.intersects"},
+                      {"id": "BBOX", "name": "queryform.spatialfilter.operations.bbox"},
+                      {"id": "CONTAINS", "name": "queryform.spatialfilter.operations.contains"},
+                      {"id": "WITHIN", "name": "queryform.spatialfilter.operations.within"}
+                  ],
+                  "spatialMethodOptions": [
+                      {"id": "Viewport", "name": "queryform.spatialfilter.methods.viewport"},
+                      {"id": "BBOX", "name": "queryform.spatialfilter.methods.box"},
+                      {"id": "Circle", "name": "queryform.spatialfilter.methods.circle"},
+                      {"id": "Polygon", "name": "queryform.spatialfilter.methods.poly"}
+                  ]
+              }
+
+            }, {
                 "name": "TOC",
                 "cfg": {
-                    "activateQueryTool": true
+                    "activateQueryTool": true,
+                    "spatialOperations": [
+                        {"id": "INTERSECTS", "name": "queryform.spatialfilter.operations.intersects"},
+                        {"id": "BBOX", "name": "queryform.spatialfilter.operations.bbox"},
+                        {"id": "CONTAINS", "name": "queryform.spatialfilter.operations.contains"},
+                        {"id": "WITHIN", "name": "queryform.spatialfilter.operations.within"}
+                    ],
+                    "spatialMethodOptions": [
+                        {"id": "Viewport", "name": "queryform.spatialfilter.methods.viewport"},
+                        {"id": "BBOX", "name": "queryform.spatialfilter.methods.box"},
+                        {"id": "Circle", "name": "queryform.spatialfilter.methods.circle"},
+                        {"id": "Polygon", "name": "queryform.spatialfilter.methods.poly"}
+                    ]
                 }
-            }, "Tutorial", "BackgroundSwitcher", {
-                "name": "Measure",
-                "cfg": {
-                    "showResults": false
-                }
-            }, "MeasureResults", "Print", "ShapeFile", {
+            }, "Tutorial", {
+                "name": "Measure"
+            }, "Print", "ShapeFile", {
                 "name": "Settings",
                 "cfg": {
                     "wrap": true
@@ -151,9 +206,9 @@
                 "cfg": {
                     "wrap": true,
                     "initialCatalogURL": {
-                        "csw": "http://demo.geo-solutions.it/geoserver/csw",
-                        "wms": "http://demo.geo-solutions.it/geoserver/wms",
-                        "wmts": "http://demo.geo-solutions.it/geoserver/gwc/service/wmts"
+                        "csw": "https://demo.geo-solutions.it/geoserver/csw",
+                        "wms": "https://demo.geo-solutions.it/geoserver/wms",
+                        "wmts": "https://demo.geo-solutions.it/geoserver/gwc/service/wmts"
                     }
                 }
             }, "About", "MousePosition", {
@@ -176,17 +231,19 @@
                 },
                 "isDefault": false
             },
-            "ScaleBox", "ZoomAll", {
+            "ScaleBox", {
+              "name":"ZoomAll",
+              "override": {
+                "Toolbar": {
+                  "alwaysVisible": true
+                }
+              }
+            }, {
                 "name": "MapLoading",
                 "override": {
                     "Toolbar": {
                         "alwaysVisible": true
                     }
-                }
-            }, {
-                "name": "Snapshot",
-                "cfg": {
-                    "wrap": true
                 }
             }, {
                 "name": "ZoomIn",
@@ -202,8 +259,14 @@
                         "alwaysVisible": true
                     }
                 }
+            }, {
+              "name": "Cookie",
+              "cfg": {
+                "externalCookieUrl" : "",
+                "declineUrl" : "http://www.google.com"
+                }
             },
-            "OmniBar", "Login", "Save", "SaveAs", "BurgerMenu", "Expander", "Undo", "Redo", "FullScreen"
+            "OmniBar", "Login", "Save", "SaveAs", "BurgerMenu", "Expander", "Undo", "Redo", "FullScreen", "GlobeViewSwitcher", "SearchServicesConfig"
         ],
         "embedded": [{
                 "name": "Map",
@@ -213,6 +276,19 @@
             }, {
               "name": "DrawerMenu",
               "hide": "{!(request.query && request.query.forceDrawer)}"
+              },{
+                  "name": "BackgroundSelector",
+                  "cfg": {
+                      "bottom": 40,
+                      "dimensions": {
+                      "side": 65,
+                      "sidePreview": 65,
+                      "frame": 3,
+                      "margin": 5,
+                      "label": false,
+                      "vertical": true
+                     }
+                  }
               }, {
                 "name": "Identify",
                 "cfg": {
@@ -247,7 +323,7 @@
                         "alwaysVisible": true
                     }
                 }
-            }, "TOC", "BackgroundSwitcher", {
+            }, "TOC", {
                 "name": "Settings",
                 "cfg": {
                     "wrap": true
@@ -270,7 +346,7 @@
                         "alwaysVisible": true
                     }
                 }
-            },
+            }, "Cookie",
             "OmniBar", {
                 "name": "GoFull",
                 "override": {
@@ -285,8 +361,14 @@
             "cfg": {
                 "className": "navbar shadow navbar-home"
             }
-        }, "ManagerMenu", "Login", "Language", "Attribution", "ScrollTop"],
-        "maps": ["Header", "Fork", "MapSearch", "HomeDescription", "MapType", "ThemeSwitcher",  "GridContainer", "CreateNewMap", "Maps", "Examples", "Footer"],
+        }, "ManagerMenu", "Login", "Language", "Attribution", "ScrollTop", "Notifications"],
+        "maps": ["Header", "Fork", "MapSearch", "HomeDescription", "MapType", "ThemeSwitcher",  "GridContainer", "CreateNewMap", "Maps", "Examples", "Footer", {
+          "name": "Cookie",
+          "cfg": {
+            "externalCookieUrl" : "",
+            "declineUrl" : "http://www.google.com"
+          }
+        }],
         "manager": ["Header", "Redirect", "Manager", "Home", "UserManager", "GroupManager", "Footer"]
     }
 }

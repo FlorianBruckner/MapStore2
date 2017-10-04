@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /*
  * Copyright 2017, GeoSolutions Sas.
  * All rights reserved.
@@ -15,7 +16,7 @@ const assign = require('object-assign');
 const HelpWrapper = require('./help/HelpWrapper');
 const Message = require('./locale/Message');
 
-const {get} = require('lodash');
+const {get, isArray} = require('lodash');
 
 const {resultsPurge, resetSearch, addMarker, searchTextChanged, textSearch, selectSearchItem, cancelSelectedItem} = require("../actions/search");
 
@@ -38,7 +39,6 @@ const SearchBar = connect(searchSelector, {
 })(require("../components/mapcontrols/search/SearchBar"));
 
 const {mapSelector} = require('../selectors/map');
-const {isArray} = require('lodash');
 
 const MediaQuery = require('react-responsive');
 
@@ -124,33 +124,112 @@ const ToggleButton = require('./searchbar/ToggleButton');
 const SearchPlugin = connect((state) => ({
     enabled: state.controls && state.controls.search && state.controls.search.enabled || false,
     selectedServices: state && state.search && state.search.selectedServices,
-    selectedItems: state && state.search && state.search.selectedItems
-}))(React.createClass({
-    propTypes: {
-        fitResultsToMapSize: React.PropTypes.bool,
-        searchOptions: React.PropTypes.object,
-        selectedItems: React.PropTypes.array,
-        selectedServices: React.PropTypes.array,
-        withToggle: React.PropTypes.oneOfType([React.PropTypes.bool, React.PropTypes.array]),
-        enabled: React.PropTypes.bool
-    },
-    getDefaultProps() {
-        return {
-            searchOptions: {
-                services: [{type: "nominatim"}]
-            },
-            fitResultsToMapSize: true,
-            withToggle: false,
-            enabled: true
-        };
-    },
-    getServiceOverrides( propSelector ) {
+    selectedItems: state && state.search && state.search.selectedItems,
+    textSearchConfig: state && state.searchconfig && state.searchconfig.textSearchConfig
+}))(/**
+ * Search plugin. Provides search functionalities for the map.
+ * Allows to display results and place them on the map. Supports nominatim and WFS as search protocols
+ * You can configure the services and each service can trigger a nested search.
+ *
+ * @example
+ * {
+ *  "name": "Search",
+ *  "cfg": {
+ *    "withToggle": ["max-width: 768px", "min-width: 768px"]
+ *  }
+ * }
+ * @class Search
+ * @memberof plugins
+ * @prop {object} cfg.searchOptions initial search options
+ * @prop {bool} cfg.fitResultsToMapSize true by default, fits the result list to the mapSize (can be disabled, for custom uses)
+ * @prop {searchService[]} cfg.searchOptions.services a list of services to perform search.
+ * a **nominatim** search service look like this:
+ * ```
+ * {
+ *  "type": "nominatim",
+ *  "searchTextTemplate": "${properties.display_name}", // text to use as searchText when an item is selected. Gets the result properties.
+ *  "options": {
+ *    "polygon_geojson": 1,
+ *    "limit": 3
+ *  }
+ * ```
+ *
+ * a **wfs** service look like this:
+ * ```
+ * {
+ *      "type": "wfs",
+ *      "priority": 2,
+ *      "displayName": "${properties.propToDisplay}",
+ *      "subTitle": " (a subtitle for the results coming from this service [ can contain expressions like ${properties.propForSubtitle}])",
+ *      "options": {
+ *        "url": "/geoserver/wfs",
+ *        "typeName": "workspace:layer",
+ *        "queriableAttributes": ["attribute_to_query"],
+ *        "sortBy": "ID",
+ *        "srsName": "EPSG:4326",
+ *        "maxFeatures": 4,
+ *        "blackist": [... an array of strings to exclude from the final search filter ]
+ *      },
+ *      "nestedPlaceholder": "Write other text to refine the search...",
+ *      "nestedPlaceholderMsgId": "id contained in the localization files i.e. search.nestedplaceholder",
+ *      "then": [ ... an array of services to use when one item of this service is selected],
+ *      "geomService": { optional service to retrieve the geometry}
+ *  }
+ *
+ * ```
+ * The typical nested service needs to have some additional parameters:
+ * ```
+ * {
+ *     "type": "wfs",
+ *     "filterTemplate": " AND SOMEPROP = '${properties.OLDPROP}'", // will be appended to the original filter, it gets the properties of the current selected item (of the parent service)
+ *     "options": {
+ *       ...
+ *     }
+ * }
+ * ```
+ * **note:** `searchTextTemplate` is useful to populate the search text input when a search result is selected, typically with "leaf" services.
+ * @prop {array|boolean} cfg.withToggle when boolean, true uses a toggle to display the searchbar. When array, e.g  `["max-width: 768px", "min-width: 768px"]`, `max-width` and `min-width` are the limits where to show/hide the toggle (useful for mobile)
+ */
+class extends React.Component {
+    static propTypes = {
+        fitResultsToMapSize: PropTypes.bool,
+        searchOptions: PropTypes.object,
+        selectedItems: PropTypes.array,
+        selectedServices: PropTypes.array,
+        userServices: PropTypes.array,
+        withToggle: PropTypes.oneOfType([PropTypes.bool, PropTypes.array]),
+        enabled: PropTypes.bool,
+        textSearchConfig: PropTypes.object
+    };
+
+    static defaultProps = {
+        searchOptions: {
+            services: [{type: "nominatim"}]
+        },
+        fitResultsToMapSize: true,
+        withToggle: false,
+        enabled: true
+    };
+
+    getServiceOverrides = (propSelector) => {
         return this.props.selectedItems && this.props.selectedItems[this.props.selectedItems.length - 1] && get(this.props.selectedItems[this.props.selectedItems.length - 1], propSelector);
-    },
-    getCurrentServices() {
-        return this.props.selectedServices && this.props.selectedServices.length > 0 ? assign({}, this.props.searchOptions, {services: this.props.selectedServices}) : this.props.searchOptions;
-    },
-    getSearchAndToggleButton() {
+    };
+
+    getSearchOptions = () => {
+        const{ searchOptions, textSearchConfig} = this.props;
+        if (textSearchConfig && textSearchConfig.services && textSearchConfig.services.length > 0) {
+            return textSearchConfig.override ? assign({}, searchOptions, {services: textSearchConfig.services}) : assign({}, searchOptions, {services: searchOptions.services.concat(textSearchConfig.services)});
+        }
+        return searchOptions;
+    };
+
+    getCurrentServices = () => {
+        const {selectedServices} = this.props;
+        const searchOptions = this.getSearchOptions();
+        return selectedServices && selectedServices.length > 0 ? assign({}, searchOptions, {services: selectedServices}) : searchOptions;
+    };
+
+    getSearchAndToggleButton = () => {
         const search = (<SearchBar
             key="seachBar"
             {...this.props}
@@ -174,7 +253,8 @@ const SearchPlugin = connect((state) => ({
             );
         }
         return search;
-    },
+    };
+
     render() {
         return (<span>
             <HelpWrapper
@@ -184,10 +264,10 @@ const SearchPlugin = connect((state) => ({
                     {this.getSearchAndToggleButton()}
                 </HelpWrapper>
                 <SearchResultList fitToMapSize={this.props.fitResultsToMapSize} searchOptions={this.props.searchOptions} key="nominatimresults"/>
-            </span>
-        );
+            </span>)
+        ;
     }
-}));
+});
 const {searchEpic, searchItemSelected} = require('../epics/search');
 
 module.exports = {

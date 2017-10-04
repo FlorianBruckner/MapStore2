@@ -7,28 +7,12 @@
  */
 
 const assign = require('object-assign');
-const {head, isArray, isString} = require('lodash');
+const {head, isArray, isString, castArray, isObject} = require('lodash');
 const urlUtil = require('url');
 const CoordinatesUtils = require('./CoordinatesUtils');
-const {castArray} = require('lodash');
 
-const getWMSBBox = (record) => {
-    let layer = record;
-    let bbox = (layer.EX_GeographicBoundingBox || (layer.LatLonBoundingBox && layer.LatLonBoundingBox.$));
-    while (!bbox && layer.Layer && layer.Layer.length) {
-        layer = layer.Layer[0];
-        bbox = (layer.EX_GeographicBoundingBox || (layer.LatLonBoundingBox && layer.LatLonBoundingBox.$));
-    }
-    if (!bbox) {
-        bbox = {
-            westBoundLongitude: -180.0,
-            southBoundLatitude: -90.0,
-            eastBoundLongitude: 180.0,
-            northBoundLatitude: 90.0
-        };
-    }
-    return bbox;
-};
+const WMS = require('../api/WMS');
+
 const getBaseCatalogUrl = (url) => {
     return url && url.replace(/\/csw$/, "/");
 };
@@ -43,6 +27,10 @@ const getWMTSBBox = (record) => {
         };
     }
     return bbox;
+};
+
+const getNodeText = (node) => {
+    return isObject(node) && node._ || node;
 };
 
 const converters = {
@@ -139,7 +127,6 @@ const converters = {
     wms: (records, options) => {
         if (records && records.records) {
             return records.records.map((record) => {
-                const bbox = getWMSBBox(record);
                 return {
                 title: record.Title || record.Name,
                 description: record.Abstract || record.Title || record.Name,
@@ -147,15 +134,7 @@ const converters = {
                 tags: "",
                 capabilities: record,
                 service: records.service,
-                boundingBox: {
-                    extent: [
-                            bbox.westBoundLongitude || bbox.minx,
-                            bbox.southBoundLatitude || bbox.miny,
-                            bbox.eastBoundLongitude || bbox.maxx,
-                            bbox.northBoundLatitude || bbox.maxy
-                    ],
-                    crs: "EPSG:4326"
-                },
+                boundingBox: WMS.getBBox(record),
                 dimensions: (record.Dimension && castArray(record.Dimension) || []).map((dim) => assign({}, {
                     values: dim._.split(',')
                 }, dim.$ || {})),
@@ -176,9 +155,9 @@ const converters = {
             return records.records.map((record) => {
                 const bbox = getWMTSBBox(record);
                 return {
-                title: record["ows:Title"] || record["ows:Identifier"],
-                description: record["ows:Abstract"] || record["ows:Title"] || record["ows:Identifier"],
-                identifier: record["ows:Identifier"],
+                title: getNodeText(record["ows:Title"] || record["ows:Identifier"]),
+                description: getNodeText(record["ows:Abstract"] || record["ows:Title"] || record["ows:Identifier"]),
+                identifier: getNodeText(record["ows:Identifier"]),
                 tags: "",
                 tileMatrixSet: record.TileMatrixSet,
                 matrixIds: castArray(record.TileMatrixSetLink).reduce((previous, current) => {

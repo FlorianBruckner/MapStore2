@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2016, GeoSolutions Sas.
  * All rights reserved.
@@ -31,61 +32,62 @@ const {Glyphicon} = require('react-bootstrap');
 const assign = require('object-assign');
 
 const SettingsPanel = require('./settings/SettingsPanel');
+const LocaleUtils = require('../utils/LocaleUtils');
 const {Panel} = require('react-bootstrap');
 const Dialog = require('../components/misc/Dialog');
 
-const SettingsButton = React.createClass({
-    propTypes: {
-        id: React.PropTypes.string,
-        undo: React.PropTypes.func,
-        redo: React.PropTypes.func,
-        mapHistory: React.PropTypes.object,
-        settings: React.PropTypes.object,
-        overrideSettings: React.PropTypes.object,
-        items: React.PropTypes.array,
-        style: React.PropTypes.object,
-        wrap: React.PropTypes.bool,
-        wrapWithPanel: React.PropTypes.bool,
-        panelStyle: React.PropTypes.object,
-        panelClassName: React.PropTypes.string,
-        visible: React.PropTypes.bool,
-        toggleControl: React.PropTypes.func,
-        closeGlyph: React.PropTypes.string
-    },
-    getDefaultProps() {
-        return {
-            id: "mapstore-settings",
-            settings: {
-                language: true,
-                history: true
-            },
-            overrideSettings: {
-                history: false
-            },
-            items: [],
-            style: {
-                width: "300px"
-            },
-            wrap: false,
-            wrapWithPanel: false,
-            panelStyle: {
-                minWidth: "300px",
-                zIndex: 100,
-                position: "absolute",
-                overflow: "auto",
-                top: "100px",
-                left: "calc(50% - 150px)",
-                backgroundColor: "white"
-            },
-            panelClassName: "toolbar-panel",
-            visible: false,
-            toggleControl: () => {},
-            closeGlyph: "1-close"
-        };
-    },
-    renderSettings() {
+class SettingsButton extends React.Component {
+    static propTypes = {
+        id: PropTypes.string,
+        undo: PropTypes.func,
+        redo: PropTypes.func,
+        mapHistory: PropTypes.object,
+        settings: PropTypes.object,
+        overrideSettings: PropTypes.object,
+        items: PropTypes.array,
+        style: PropTypes.object,
+        wrap: PropTypes.bool,
+        wrapWithPanel: PropTypes.bool,
+        panelStyle: PropTypes.object,
+        panelClassName: PropTypes.string,
+        visible: PropTypes.bool,
+        toggleControl: PropTypes.func,
+        closeGlyph: PropTypes.string
+    };
+
+    static defaultProps = {
+        id: "mapstore-settings",
+        settings: {
+            language: true,
+            history: true
+        },
+        overrideSettings: {
+            history: false
+        },
+        items: [],
+        style: {
+            width: "300px"
+        },
+        wrap: false,
+        wrapWithPanel: false,
+        panelStyle: {
+            minWidth: "300px",
+            zIndex: 100,
+            position: "absolute",
+            overflow: "auto",
+            top: "100px",
+            left: "calc(50% - 150px)",
+            backgroundColor: "white"
+        },
+        panelClassName: "toolbar-panel",
+        visible: false,
+        toggleControl: () => {},
+        closeGlyph: "1-close"
+    };
+
+    renderSettings = () => {
         const settingsFirst = {
-            language: <LangBar key="langSelector"/>
+            language: <span key="language-label"><label><Message msgId="language" /></label> <LangBar locales={LocaleUtils.getSupportedLocales()} key="langSelector"/></span>
         };
         const settingsLast = {
             history: <HistoryBar
@@ -93,32 +95,33 @@ const SettingsButton = React.createClass({
                 undoBtnProps={{
                     onClick: this.props.undo,
                     label: <Message msgId="history.undoBtnTooltip"/>,
-                    disabled: (this.props.mapHistory.past.length > 0) ? false : true
+                    disabled: this.props.mapHistory.past.length > 0 ? false : true
                 }}
                 redoBtnProps={{
                     onClick: this.props.redo,
                     label: <Message msgId="history.redoBtnTooltip" />,
-                    disabled: (this.props.mapHistory.future.length > 0) ? false : true
-            }}/>
+                    disabled: this.props.mapHistory.future.length > 0 ? false : true
+                }}/>
         };
 
         return Object.keys(settingsFirst)
             .filter(this.isEnabled)
             .map((setting) => settingsFirst[setting])
+            // TODO: here every item (item.tool) we emit should have a "key" property
             .concat(this.props.items.map((item) => item.tool))
             .concat(
                 Object.keys(settingsLast)
                     .filter(this.isEnabled)
                     .map((setting) => settingsLast[setting])
             );
-    },
+    };
+
     render() {
-        const settings = (
-            <SettingsPanel role="body" style={this.props.style}>
-                <label><Message msgId="language" /></label>
+        const settings =
+            (<SettingsPanel role="body" style={this.props.style}>
                 {this.renderSettings()}
-            </SettingsPanel>
-        );
+            </SettingsPanel>)
+        ;
         if (this.props.wrap) {
             if (this.props.visible) {
                 if (this.props.wrapWithPanel) {
@@ -138,12 +141,13 @@ const SettingsButton = React.createClass({
             return settings;
         }
         return null;
-    },
-    isEnabled(setting) {
+    }
+
+    isEnabled = (setting) => {
         const settings = assign({}, this.props.settings, this.props.overrideSettings);
         return settings[setting];
-    }
-});
+    };
+}
 
 const SettingsPlugin = connect((state) => ({
     mapHistory: state.map && state.map.past && {past: state.map.past, future: state.map.future} || {past: [], future: []},

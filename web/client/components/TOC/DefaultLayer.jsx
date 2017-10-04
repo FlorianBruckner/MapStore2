@@ -1,3 +1,4 @@
+const PropTypes = require('prop-types');
 /**
  * Copyright 2015, GeoSolutions Sas.
  * All rights reserved.
@@ -17,85 +18,104 @@ const LayersTool = require('./fragments/LayersTool');
 const SettingsModal = require('./fragments/SettingsModal');
 const Message = require('../I18N/Message');
 
-var DefaultLayer = React.createClass({
-    propTypes: {
-        node: React.PropTypes.object,
-        settings: React.PropTypes.object,
-        propertiesChangeHandler: React.PropTypes.func,
-        retrieveLayerData: React.PropTypes.func,
-        onToggle: React.PropTypes.func,
-        onToggleQuerypanel: React.PropTypes.func,
-        onZoom: React.PropTypes.func,
-        onSettings: React.PropTypes.func,
-        style: React.PropTypes.object,
-        sortableStyle: React.PropTypes.object,
-        hideSettings: React.PropTypes.func,
-        updateSettings: React.PropTypes.func,
-        updateNode: React.PropTypes.func,
-        removeNode: React.PropTypes.func,
-        activateLegendTool: React.PropTypes.bool,
-        activateRemoveLayer: React.PropTypes.bool,
-        activateSettingsTool: React.PropTypes.bool,
-        activateQueryTool: React.PropTypes.bool,
-        activateZoomTool: React.PropTypes.bool,
-        chartStyle: React.PropTypes.object,
-        settingsText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        opacityText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        elevationText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        saveText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        closeText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        confirmDeleteText: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        confirmDeleteMessage: React.PropTypes.oneOfType([React.PropTypes.string, React.PropTypes.element]),
-        modalOptions: React.PropTypes.object,
-        settingsOptions: React.PropTypes.object,
-        visibilityCheckType: React.PropTypes.string,
-        includeDeleteButtonInSettings: React.PropTypes.bool,
-        groups: React.PropTypes.array,
-        currentZoomLvl: React.PropTypes.number,
-        scales: React.PropTypes.array
-    },
-    getDefaultProps() {
-        return {
-            style: {},
-            sortableStyle: {},
-            propertiesChangeHandler: () => {},
-            onToggle: () => {},
-            onZoom: () => {},
-            onSettings: () => {},
-            retrieveLayerData: () => {},
-            onToggleQuerypanel: () => {},
-            activateRemoveLayer: false,
-            activateLegendTool: false,
-            activateSettingsTool: false,
-            activateQueryTool: false,
-            activateZoomTool: false,
-            includeDeleteButtonInSettings: false,
-            modalOptions: {},
-            settingsOptions: {},
-            confirmDeleteText: <Message msgId="layerProperties.deleteLayer" />,
-            confirmDeleteMessage: <Message msgId="layerProperties.deleteLayerMessage" />,
-            visibilityCheckType: "glyph"
-        };
-    },
-    onConfirmDelete() {
-        this.props.removeNode(this.props.node.id, "layers");
+class DefaultLayer extends React.Component {
+    static propTypes = {
+        node: PropTypes.object,
+        settings: PropTypes.object,
+        propertiesChangeHandler: PropTypes.func,
+        retrieveLayerData: PropTypes.func,
+        onToggle: PropTypes.func,
+        onContextMenu: PropTypes.func,
+        onBrowseData: PropTypes.func,
+        onZoom: PropTypes.func,
+        onSettings: PropTypes.func,
+        onRefresh: PropTypes.func,
+        style: PropTypes.object,
+        sortableStyle: PropTypes.object,
+        hideSettings: PropTypes.func,
+        updateSettings: PropTypes.func,
+        updateNode: PropTypes.func,
+        removeNode: PropTypes.func,
+        activateLegendTool: PropTypes.bool,
+        activateRemoveLayer: PropTypes.bool,
+        activateSettingsTool: PropTypes.bool,
+        activateQueryTool: PropTypes.bool,
+        activateZoomTool: PropTypes.bool,
+        activateRefreshTool: PropTypes.bool,
+        chartStyle: PropTypes.object,
+        settingsText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        opacityText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        elevationText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        saveText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        closeText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        confirmDeleteText: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        confirmDeleteMessage: PropTypes.oneOfType([PropTypes.string, PropTypes.element]),
+        modalOptions: PropTypes.object,
+        settingsOptions: PropTypes.object,
+        visibilityCheckType: PropTypes.string,
+        includeDeleteButtonInSettings: PropTypes.bool,
+        groups: PropTypes.array,
+        currentZoomLvl: PropTypes.number,
+        scales: PropTypes.array,
+        additionalTools: PropTypes.array,
+        legendOptions: PropTypes.object
+    };
+
+    static defaultProps = {
+        style: {},
+        sortableStyle: {},
+        propertiesChangeHandler: () => {},
+        onToggle: () => {},
+        onContextMenu: () => {},
+        onZoom: () => {},
+        onSettings: () => {},
+        onRefresh: () => {},
+        retrieveLayerData: () => {},
+        onBrowseData: () => {},
+        activateRemoveLayer: false,
+        activateLegendTool: false,
+        activateSettingsTool: false,
+        activateQueryTool: false,
+        activateZoomTool: false,
+        activateRefreshTool: false,
+        includeDeleteButtonInSettings: false,
+        modalOptions: {},
+        settingsOptions: {},
+        confirmDeleteText: <Message msgId="layerProperties.deleteLayer" />,
+        confirmDeleteMessage: <Message msgId="layerProperties.deleteLayerMessage" />,
+        visibilityCheckType: "glyph",
+        additionalTools: []
+    };
+
+    state = {
+        showDeleteDialog: false
+    };
+
+    onConfirmDelete = () => {
+        this.props.removeNode(this.props.node.id, "layers", this.props.node);
         this.closeDeleteDialog();
-    },
-    getInitialState: function() {
-        return {
-          showDeleteDialog: false
-        };
-    },
-    renderCollapsible() {
-        let tools = [];
+    };
+
+    renderCollapsible = () => {
+        let tools = this.props.additionalTools.filter((t) => t.collapsible).map((Tool) => <Tool style={{"float": "right", cursor: "pointer"}}/>);
         if (this.props.activateRemoveLayer) {
-            tools.push((<LayersTool
+            tools.push(<LayersTool
                         node={this.props.node}
                         key="removelayer"
                         className="clayer_removal_button"
                         onClick={this.displayDeleteDialog}
                         tooltip="toc.removeLayer"
                         glyph="1-close"
+                        />);
+        }
+        if (this.props.activateRefreshTool && this.props.node.type === 'wms') {
+            tools.push((<LayersTool
+                        node={this.props.node}
+                        key="refreshlayer"
+                        className="clayer_refresh_button"
+                        onClick={this.displayRefreshDialog}
+                        tooltip="toc.refreshConfirm"
+                        glyph="refresh"
                         />));
         }
         tools.push(
@@ -130,22 +150,27 @@ var DefaultLayer = React.createClass({
         if (this.props.activateQueryTool && this.props.node.search) {
             tools.push(
                 <LayersTool key="toolquery"
-                        tooltip="toc.searchFeatures"
+                        tooltip="toc.browseData"
                         className="toc-queryTool"
                         node={this.props.node}
                         ref="target"
                         style={{"float": "right", cursor: "pointer"}}
-                        glyph="search"
-                        onClick={(node) => this.props.onToggleQuerypanel(node.search.url || node.url, node.name)}/>
+                        glyph="features-grid"
+                        onClick={(node) => this.props.onBrowseData({
+                            url: node.search.url || node.url,
+                            name: node.name,
+                            id: node.id
+                        })}/>
                 );
         }
         return (<div position="collapsible" className="collapsible-toc">
              <div style={{minHeight: "35px"}}>{tools}</div>
-             <div><WMSLegend node={this.props.node} currentZoomLvl={this.props.currentZoomLvl} scales={this.props.scales}/></div>
+             <div><WMSLegend node={this.props.node} currentZoomLvl={this.props.currentZoomLvl} scales={this.props.scales} {...this.props.legendOptions}/></div>
         </div>);
-    },
-    renderTools() {
-        const tools = [];
+    };
+
+    renderTools = () => {
+        const tools = this.props.additionalTools.filter((t) => !t.collapsible).map((Tool) => <Tool style={{"float": "right", cursor: "pointer"}}/>);
         if (this.props.visibilityCheckType) {
             tools.push(
                 <VisibilityCheck key="visibilitycheck"
@@ -173,17 +198,18 @@ var DefaultLayer = React.createClass({
                         className="toc-zoomTool"
                         ref="target"
                         style={{"float": "right", cursor: "pointer"}}
-                        glyph="zoom-in"
+                        glyph="zoom-to"
                         onClick={(node) => this.props.onZoom(node.bbox.bounds, node.bbox.crs)}/>
                 );
         }
         return tools;
-    },
+    };
+
     render() {
         let {children, propertiesChangeHandler, onToggle, ...other } = this.props;
         return (
             <Node className="toc-default-layer" sortableStyle={this.props.sortableStyle} style={this.props.style} type="layer" {...other}>
-                <Title onClick={this.props.onToggle}/>
+                <Title onClick={this.props.onToggle} onContextMenu={this.props.onContextMenu}/>
                 <LayersTool key="loadingerror"
                         style={{"display": this.props.node.loadingError ? "block" : "none", color: "red", cursor: "default"}}
                         glyph="ban-circle"
@@ -195,17 +221,23 @@ var DefaultLayer = React.createClass({
                 <ConfirmModal ref="removelayer" show= {this.state.showDeleteDialog} onHide={this.closeDeleteDialog} onClose={this.closeDeleteDialog} onConfirm={this.onConfirmDelete} titleText={this.props.confirmDeleteText} confirmText={this.props.confirmDeleteText} cancelText={<Message msgId="cancel" />} body={this.props.confirmDeleteMessage} />
             </Node>
         );
-    },
-    closeDeleteDialog() {
+    }
+
+    closeDeleteDialog = () => {
         this.setState({
             showDeleteDialog: false
         });
-    },
-    displayDeleteDialog() {
+    };
+
+    displayDeleteDialog = () => {
         this.setState({
             showDeleteDialog: true
         });
-    }
-});
+    };
+
+    displayRefreshDialog = () => {
+        this.props.onRefresh(this.props.node);
+    };
+}
 
 module.exports = DefaultLayer;

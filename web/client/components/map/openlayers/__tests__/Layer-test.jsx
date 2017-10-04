@@ -26,29 +26,27 @@ describe('Openlayers layer', () => {
     document.body.innerHTML = '<div id="map"></div>';
     let map;
 
-    beforeEach((done) => {
+    beforeEach(() => {
         document.body.innerHTML = '<div id="map"></div><div id="container"></div>';
         map = new ol.Map({
-          layers: [
-          ],
-          controls: ol.control.defaults({
-            attributionOptions: /** @type {olx.control.AttributionOptions} */ ({
-              collapsible: false
+            layers: [
+            ],
+            controls: ol.control.defaults({
+                attributionOptions: /** @type {olx.control.AttributionOptions} */ {
+                    collapsible: false
+                }
+            }),
+            target: 'map',
+            view: new ol.View({
+                center: [0, 0],
+                zoom: 5
             })
-          }),
-          target: 'map',
-          view: new ol.View({
-            center: [0, 0],
-            zoom: 5
-          })
         });
-        setTimeout(done);
     });
 
-    afterEach((done) => {
+    afterEach(() => {
         map.setTarget(null);
         document.body.innerHTML = '';
-        setTimeout(done);
     });
 
     it('missing layer', () => {
@@ -419,28 +417,28 @@ describe('Openlayers layer', () => {
         var options = {
             crs: 'EPSG:4326',
             features: {
-              'type': 'FeatureCollection',
-              'crs': {
-                'type': 'name',
-                'properties': {
-                  'name': 'EPSG:4326'
-                }
-              },
-              'features': [
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Polygon',
-                          'coordinates': [[
+                'type': 'FeatureCollection',
+                'crs': {
+                    'type': 'name',
+                    'properties': {
+                        'name': 'EPSG:4326'
+                    }
+                },
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Polygon',
+                            'coordinates': [[
                               [13, 43],
                               [15, 43],
                               [15, 44],
                               [13, 44]
-                          ]]
-                      }
-                  }
-              ]
-          }
+                            ]]
+                        }
+                    }
+                ]
+            }
         };
         // create layers
         var layer = ReactDOM.render(
@@ -456,29 +454,29 @@ describe('Openlayers layer', () => {
         var options = {
             crs: 'EPSG:4326',
             features: {
-              'type': 'FeatureCollection',
-              'crs': {
-                'type': 'name',
-                'properties': {
-                  'name': 'EPSG:4326'
-                }
-              },
-              'featureCrs': 'EPSG:3857',
-              'features': [
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Polygon',
-                          'coordinates': [[
+                'type': 'FeatureCollection',
+                'crs': {
+                    'type': 'name',
+                    'properties': {
+                        'name': 'EPSG:4326'
+                    }
+                },
+                'featureCrs': 'EPSG:3857',
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Polygon',
+                            'coordinates': [[
                               [1447153.3803125600, 5311971.8469454700],
                               [1669792.3618991000, 5311971.8469454700],
                               [1669792.3618991000, 5465442.1833227500],
                               [1447153.3803125600, 5465442.1833227500]
-                          ]]
-                      }
-                  }
-              ]
-          }
+                            ]]
+                        }
+                    }
+                ]
+            }
         };
         // create layers
         var layer = ReactDOM.render(
@@ -499,35 +497,35 @@ describe('Openlayers layer', () => {
             },
             crs: 'EPSG:4326',
             features: {
-              'type': 'FeatureCollection',
-              'crs': {
-                'type': 'name',
-                'properties': {
-                  'name': 'EPSG:4326'
-                }
-              },
-              'features': [
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Point',
-                          'coordinates': [13, 44]
-                      }
-                  },
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Polygon',
-                          'coordinates': [[
+                'type': 'FeatureCollection',
+                'crs': {
+                    'type': 'name',
+                    'properties': {
+                        'name': 'EPSG:4326'
+                    }
+                },
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [13, 44]
+                        }
+                    },
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Polygon',
+                            'coordinates': [[
                               [13, 43],
                               [15, 43],
                               [15, 44],
                               [13, 44]
-                          ]]
-                      }
-                  }
-              ]
-          }
+                            ]]
+                        }
+                    }
+                ]
+            }
         };
         // create layers
         var layer = ReactDOM.render(
@@ -554,23 +552,23 @@ describe('Openlayers layer', () => {
             },
             crs: 'EPSG:4326',
             features: {
-              'type': 'FeatureCollection',
-              'crs': {
-                'type': 'name',
-                'properties': {
-                  'name': 'EPSG:4326'
-                }
-              },
-              'features': [
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Point',
-                          'coordinates': [13, 44]
-                      }
-                  }
-              ]
-          }
+                'type': 'FeatureCollection',
+                'crs': {
+                    'type': 'name',
+                    'properties': {
+                        'name': 'EPSG:4326'
+                    }
+                },
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Point',
+                            'coordinates': [13, 44]
+                        }
+                    }
+                ]
+            }
         };
         // create layers
         var layer = ReactDOM.render(
@@ -587,28 +585,28 @@ describe('Openlayers layer', () => {
             styleName: "Polygon",
             crs: 'EPSG:4326',
             features: {
-              'type': 'FeatureCollection',
-              'crs': {
-                'type': 'name',
-                'properties': {
-                  'name': 'EPSG:4326'
-                }
-              },
-              'features': [
-                  {
-                      'type': 'Feature',
-                      'geometry': {
-                          'type': 'Polygon',
-                          'coordinates': [[
+                'type': 'FeatureCollection',
+                'crs': {
+                    'type': 'name',
+                    'properties': {
+                        'name': 'EPSG:4326'
+                    }
+                },
+                'features': [
+                    {
+                        'type': 'Feature',
+                        'geometry': {
+                            'type': 'Polygon',
+                            'coordinates': [[
                               [13, 43],
                               [15, 43],
                               [15, 44],
                               [13, 44]
-                          ]]
-                      }
-                  }
-              ]
-          }
+                            ]]
+                        }
+                    }
+                ]
+            }
         };
         // create layers
         var layer = ReactDOM.render(

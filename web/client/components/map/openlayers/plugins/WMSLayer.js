@@ -1,5 +1,5 @@
-/**
- * Copyright 2015, GeoSolutions Sas.
+/*
+ * Copyright 2017, GeoSolutions Sas.
  * All rights reserved.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -26,7 +26,11 @@ function wmsToOpenlayersOptions(options) {
         CRS: CoordinatesUtils.normalizeSRS(options.srs || 'EPSG:3857', options.allowedSRS),
         TILED: options.tiled || false,
         VERSION: options.version || "1.3.0"
-    }, options.params || {});
+    }, objectAssign(
+        {},
+        (options._v_ ? {_v_: options._v_} : {}),
+        (options.params || {})
+    ));
 }
 
 function getWMSURLs( urls ) {
@@ -55,7 +59,8 @@ Layers.registerType('wms', {
                 zIndex: options.zIndex,
                 source: new ol.source.ImageWMS({
                     url: urls[0],
-                    params: queryParameters
+                    params: queryParameters,
+                    ratio: options.ratio
                 })
             });
         }
@@ -66,18 +71,18 @@ Layers.registerType('wms', {
             visible: options.visibility !== false,
             zIndex: options.zIndex,
             source: new ol.source.TileWMS(objectAssign({
-              urls: urls,
-              params: queryParameters,
-              tileGrid: new ol.tilegrid.TileGrid({
-                  extent: extent,
-                  resolutions: mapUtils.getResolutions(),
-                  tileSize: options.tileSize ? options.tileSize : 256,
-                  origin: options.origin ? options.origin : [extent[0], extent[1]]
-              })
-            }, (options.forceProxy) ? {tileLoadFunction: proxyTileLoadFunction} : {}))
+                urls: urls,
+                params: queryParameters,
+                tileGrid: new ol.tilegrid.TileGrid({
+                    extent: extent,
+                    resolutions: mapUtils.getResolutions(),
+                    tileSize: options.tileSize ? options.tileSize : 256,
+                    origin: options.origin ? options.origin : [extent[0], extent[1]]
+                })
+            }, options.forceProxy ? {tileLoadFunction: proxyTileLoadFunction} : {}))
         });
     },
-    update: (layer, newOptions, oldOptions) => {
+    update: (layer, newOptions, oldOptions, map) => {
         if (oldOptions && layer && layer.getSource() && layer.getSource().updateParams) {
             let changed = false;
             if (oldOptions.params && newOptions.params) {
@@ -92,7 +97,7 @@ Layers.registerType('wms', {
             }
             let oldParams = wmsToOpenlayersOptions(oldOptions);
             let newParams = wmsToOpenlayersOptions(newOptions);
-            changed = changed || ["LAYERS", "STYLES", "FORMAT", "TRANSPARENT", "TILED", "VERSION" ].reduce((found, param) => {
+            changed = changed || ["LAYERS", "STYLES", "FORMAT", "TRANSPARENT", "TILED", "VERSION", "_v_" ].reduce((found, param) => {
                 if (oldParams[param] !== newParams[param]) {
                     return true;
                 }
@@ -110,6 +115,45 @@ Layers.registerType('wms', {
             if (changed) {
                 layer.getSource().updateParams(objectAssign(newParams, newOptions.params));
             }
+            if (oldOptions.singleTile !== newOptions.singleTile) {
+                const urls = getWMSURLs(isArray(newOptions.url) ? newOptions.url : [newOptions.url]);
+                const queryParameters = wmsToOpenlayersOptions(newOptions) || {};
+                urls.forEach(url => SecurityUtils.addAuthenticationParameter(url, queryParameters));
+                let newLayer;
+                if (newOptions.singleTile) {
+                    // return the Image Layer with the related source
+                    newLayer = new ol.layer.Image({
+                        opacity: newOptions.opacity !== undefined ? newOptions.opacity : 1,
+                        visible: newOptions.visibility !== false,
+                        zIndex: newOptions.zIndex,
+                        source: new ol.source.ImageWMS({
+                            url: urls[0],
+                            params: queryParameters
+                        })
+                    });
+                } else {
+                    // return the Tile Layer with the related source
+                    const mapSrs = map && map.getView() && map.getView().getProjection() && map.getView().getProjection().getCode() || 'EPSG:3857';
+                    const extent = ol.proj.get(CoordinatesUtils.normalizeSRS(newOptions.srs || mapSrs, newOptions.allowedSRS)).getExtent();
+                    newLayer = new ol.layer.Tile({
+                        opacity: newOptions.opacity !== undefined ? newOptions.opacity : 1,
+                        visible: newOptions.visibility !== false,
+                        zIndex: newOptions.zIndex,
+                        source: new ol.source.TileWMS(objectAssign({
+                            urls: urls,
+                            params: queryParameters,
+                            tileGrid: new ol.tilegrid.TileGrid({
+                                extent: extent,
+                                resolutions: mapUtils.getResolutions(),
+                                tileSize: newOptions.tileSize ? newOptions.tileSize : 256,
+                                origin: newOptions.origin ? newOptions.origin : [extent[0], extent[1]]
+                            })
+                        }, newOptions.forceProxy ? {tileLoadFunction: proxyTileLoadFunction} : {}))
+                    });
+                }
+                return newLayer;
+            }
+            return null;
         }
     }
 });

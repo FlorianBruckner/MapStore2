@@ -1,4 +1,4 @@
-# Quick Start:
+# Quick Start
 
 Clone the repository with the --recursive option to automatically clone submodules:
 
@@ -24,13 +24,16 @@ Install latest Maven, if needed, from [here](https://maven.apache.org/download.c
 
 Build the deployable war:
 
-`./build.sh`
+`./build.sh [version_identifier]`
+
+Where version_identifier is an optional identifier of the generated war that will be shown in the settings panel of the application.
 
 Deploy the generated mapstore.war file (in web/target) to your favourite J2EE container (e.g. Tomcat).
 
 # Developers documentation
  * [Infrastructure](infrastructure-and-general-architecture)
  * [Building and deploying](building-and-developing)
- * [Developing with MapStore 2](developing-with-mapstore-2-intro)
+ * [Developing with MapStore2](developing-with-mapstore-2-intro)
  * [Configuration](configuration-files)
  * [Migration](mapstore-migration-guide)
+ * [How to Release](release-checklist)

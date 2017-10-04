@@ -35,19 +35,18 @@ const reorderLayers = (groups, allLayers) => {
 };
 const createGroup = (groupId, groupName, layers, addLayers) => {
     return assign({}, {
-            id: groupId,
-            title: (groupName || "").replace(/\${dot}/g, "."),
-            name: groupName,
-            nodes: addLayers ? getLayersId(groupId, layers) : [],
-            expanded: true
-        });
+        id: groupId,
+        title: (groupName || "").replace(/\${dot}/g, "."),
+        name: groupName,
+        nodes: addLayers ? getLayersId(groupId, layers) : [],
+        expanded: true
+    });
 };
 
 const getElevationDimension = (dimensions = []) => {
     return dimensions.reduce((previous, dim) => {
-        return (dim.name.toLowerCase() === 'elevation' || dim.name.toLowerCase() === 'depth') ?
+        return dim.name.toLowerCase() === 'elevation' || dim.name.toLowerCase() === 'depth' ?
             assign({
-                showChart: true,
                 positive: dim.name.toLowerCase() === 'elevation'
             }, dim, {
                 name: dim.name.toLowerCase() === 'elevation' ? dim.name : 'DIM_' + dim.name
@@ -55,17 +54,29 @@ const getElevationDimension = (dimensions = []) => {
     }, null);
 };
 
-var LayersUtils = {
+const addBaseParams = (url, params) => {
+    const query = Object.keys(params).map((key) => key + '=' + encodeURIComponent(params[key])).join('&');
+    return url.indexOf('?') === -1 ? (url + '?' + query) : (url + '&' + query);
+};
+
+const isSupportedLayer = (layer, maptype) => {
+    const Layers = require('./' + maptype + '/Layers');
+    if (layer.type === "mapquest" || layer.type === "bing") {
+        return Layers.isSupported(layer.type) && layer.apiKey && layer.apiKey !== "__API_KEY_MAPQUEST__" && !layer.invalid;
+    }
+    return Layers.isSupported(layer.type) && !layer.invalid;
+};
+const LayersUtils = {
     getDimension: (dimensions, dimension) => {
         switch (dimension.toLowerCase()) {
-            case 'elevation':
-                return getElevationDimension(dimensions);
-            default:
-                return null;
+        case 'elevation':
+            return getElevationDimension(dimensions);
+        default:
+            return null;
         }
     },
     getLayerId: (layerObj, layers) => {
-        return layerObj && layerObj.id || (layerObj.name + "__" + layers.length);
+        return layerObj && layerObj.id || layerObj.name + "__" + layers.length;
     },
     getLayersByGroup: (configLayers) => {
         let i = 0;
@@ -79,11 +90,11 @@ var LayersUtils = {
             name.split('.').reduce((subGroups, groupName, idx, array)=> {
                 const groupId = name.split(".", idx + 1).join('.');
                 let group = getGroup(groupId, subGroups);
-                const addLayers = (idx === array.length - 1);
+                const addLayers = idx === array.length - 1;
                 if (!group) {
                     group = createGroup(groupId, groupName, mapLayers, addLayers);
                     subGroups.push(group);
-                }else if (addLayers) {
+                } else if (addLayers) {
                     group.nodes = group.nodes.concat(getLayersId(groupId, mapLayers));
                 }
                 return group.nodes;
@@ -193,6 +204,7 @@ var LayersUtils = {
             capabilitiesURL: layer.capabilitiesURL,
             title: layer.title,
             transparent: layer.transparent,
+            tiled: layer.tiled,
             type: layer.type,
             url: layer.url,
             bbox: layer.bbox,
@@ -204,6 +216,23 @@ var LayersUtils = {
             dimensions: layer.dimensions || [],
             ...assign({}, layer.params ? {params: layer.params} : {})
         };
+    },
+    getCapabilitiesUrl: (layer) => {
+        let reqUrl = layer.url;
+        let urlParts = reqUrl.split("/geoserver/");
+        if (urlParts.length === 2) {
+            let layerParts = layer.name.split(":");
+            if (layerParts.length === 2) {
+                reqUrl = urlParts[0] + "/geoserver/" + layerParts [0] + "/" + layerParts[1] + "/" + urlParts[1];
+            }
+        }
+        return addBaseParams(reqUrl, layer.baseParams || {});
+    },
+    invalidateUnsupportedLayer(layer, maptype) {
+        return isSupportedLayer(layer, maptype) ? layer : assign({}, layer, {invalid: true});
+    },
+    isSupportedLayer(layer, maptype) {
+        return isSupportedLayer(layer, maptype);
     }
 
 };

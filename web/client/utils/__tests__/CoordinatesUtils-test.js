@@ -29,6 +29,17 @@ describe('CoordinatesUtils', () => {
         expect(transformed.y).toNotBe(13);
         expect(transformed.srs).toBe('EPSG:900913');
     });
+    it('it should tests the creation of a bbox given the center, resolution and size', () => {
+        let center = {x: 0, y: 0};
+        let resolution = 1;
+        let rotation = 0;
+        let size = [10, 10];
+        let bbox = CoordinatesUtils.getProjectedBBox(center, resolution, rotation, size);
+        expect(bbox).toExist();
+        expect(bbox.maxx).toBeGreaterThan(bbox.minx);
+        expect(bbox.maxy).toBeGreaterThan(bbox.miny);
+    });
+
     it('convert lat lon bbox to marcator bbox', () => {
         var bbox = [44, 12, 45, 13];
         var projbbox = CoordinatesUtils.reprojectBbox(bbox, 'EPSG:4326', 'EPSG:900913');
@@ -76,20 +87,20 @@ describe('CoordinatesUtils', () => {
         const testPoint = {
             type: "FeatureCollection",
             features: [
-               {
-                  type: "Feature",
-                  geometry: {
-                     type: "Point",
-                     coordinates: [
-                        -112.50042920000001,
-                        42.22829164089942
-                     ]
-                  },
-                  properties: {
-                     "serial_num": "12C324776"
-                  },
-                  id: 0
-               }
+                {
+                    type: "Feature",
+                    geometry: {
+                        type: "Point",
+                        coordinates: [
+                            -112.50042920000001,
+                            42.22829164089942
+                        ]
+                    },
+                    properties: {
+                        "serial_num": "12C324776"
+                    },
+                    id: 0
+                }
             ]
         };
         const reprojectedTestPoint = CoordinatesUtils.reprojectGeoJson(testPoint, "EPSG:4326", "EPSG:900913");
@@ -105,14 +116,14 @@ describe('CoordinatesUtils', () => {
 
     it('test geojson extent', () => {
         let geojsonPoint = {
-          "type": "Feature",
-          "geometry": {
-            "type": "Point",
-            "coordinates": [125.6, 10.1]
-          },
-          "properties": {
-            "name": "Dinagat Islands"
-          }
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [125.6, 10.1]
+            },
+            "properties": {
+                "name": "Dinagat Islands"
+            }
         };
         expect(CoordinatesUtils.getGeoJSONExtent(geojsonPoint)[0] <= 125.6).toBe(true);
         expect(CoordinatesUtils.getGeoJSONExtent(geojsonPoint)[1] <= 10.1).toBe(true);
@@ -120,47 +131,98 @@ describe('CoordinatesUtils', () => {
         expect(CoordinatesUtils.getGeoJSONExtent(geojsonPoint)[3] >= 10.1).toBe(true);
         let featureCollection = { "type": "FeatureCollection",
             "features": [
-              { "type": "Feature",
-                "geometry": {"type": "Point", "coordinates": [102.0, 0.5]},
-                "properties": {"prop0": "value0"}
-              },
-              { "type": "Feature",
-                "geometry": {
-                    "type": "GeometryCollection",
-                    "geometries": [{"type": "Point", "coordinates": [102.0, 0.5]}]
+                { "type": "Feature",
+                    "geometry": {"type": "Point", "coordinates": [102.0, 0.5]},
+                    "properties": {"prop0": "value0"}
                 },
-                "properties": {"prop0": "value0"}
-              },
-              { "type": "Feature",
-                "geometry": {
-                  "type": "LineString",
-                  "coordinates": [
+                { "type": "Feature",
+                    "geometry": {
+                        "type": "GeometryCollection",
+                        "geometries": [{"type": "Point", "coordinates": [102.0, 0.5]}]
+                    },
+                    "properties": {"prop0": "value0"}
+                },
+                { "type": "Feature",
+                    "geometry": {
+                        "type": "LineString",
+                        "coordinates": [
                     [102.0, 0.0], [103.0, 1.0], [104.0, 0.0], [105.0, 1.0]
-                    ]
-                  },
-                "properties": {
-                  "prop0": "value0",
-                  "prop1": 0.0
-                  }
+                        ]
+                    },
+                    "properties": {
+                        "prop0": "value0",
+                        "prop1": 0.0
+                    }
                 },
-              { "type": "Feature",
-                 "geometry": {
-                   "type": "Polygon",
-                   "coordinates": [
-                     [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
+                { "type": "Feature",
+                    "geometry": {
+                        "type": "Polygon",
+                        "coordinates": [
+                            [ [100.0, 0.0], [101.0, 0.0], [101.0, 1.0],
                        [100.0, 1.0], [100.0, 0.0] ]
-                     ]
-                 },
-                 "properties": {
-                   "prop0": "value0",
-                   "prop1": {"this": "that"}
-                   }
-                 }
-               ]
+                        ]
+                    },
+                    "properties": {
+                        "prop0": "value0",
+                        "prop1": {"this": "that"}
+                    }
+                }
+            ]
         };
         expect(CoordinatesUtils.getGeoJSONExtent(featureCollection)[0]).toBe(100.0);
         expect(CoordinatesUtils.getGeoJSONExtent(featureCollection)[1]).toBe(0.0);
         expect(CoordinatesUtils.getGeoJSONExtent(featureCollection)[2]).toBe(105.0);
         expect(CoordinatesUtils.getGeoJSONExtent(featureCollection)[3]).toBe(1.0);
     });
+    it('test coordsOLtoLeaflet on point', () => {
+        let geojsonPoint = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Point",
+                "coordinates": [125.6, 10.1]
+            }
+        };
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)).toBe(geojsonPoint.geometry.coordinates.reverse());
+    });
+    it('test coordsOLtoLeaflet on LineString', () => {
+        let geojsonPoint = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [[1, 2], [3, 4]]
+            }
+        };
+        const reversedPoint = {
+            "type": "Feature",
+            "geometry": {
+                "type": "LineString",
+                "coordinates": geojsonPoint.geometry.coordinates.map(point => point.reverse())
+            }
+        };
+
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[0]).toBe(reversedPoint.geometry.coordinates[0]);
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[1]).toBe(reversedPoint.geometry.coordinates[1]);
+    });
+    it('test coordsOLtoLeaflet on Polygon', () => {
+        let geojsonPoint = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[[1, 2], [3, 4], [5, 6], [1, 2]]]
+            }
+        };
+        const reversedPoint = {
+            "type": "Feature",
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": geojsonPoint.geometry.coordinates[0].map(point => point.reverse())
+            }
+        };
+
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[0][0]).toBe(reversedPoint.geometry.coordinates[0]);
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[0][1]).toBe(reversedPoint.geometry.coordinates[1]);
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[0][2]).toBe(reversedPoint.geometry.coordinates[2]);
+        expect(CoordinatesUtils.coordsOLtoLeaflet(geojsonPoint.geometry)[0][3]).toBe(reversedPoint.geometry.coordinates[3]);
+    });
+
 });

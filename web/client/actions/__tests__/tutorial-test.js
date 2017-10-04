@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2017, GeoSolutions Sas.
  * All rights reserved.
  *
@@ -11,14 +11,20 @@ var expect = require('expect');
 var {
     START_TUTORIAL,
     SETUP_TUTORIAL,
+    INIT_TUTORIAL,
     UPDATE_TUTORIAL,
     DISABLE_TUTORIAL,
     RESET_TUTORIAL,
+    CLOSE_TUTORIAL,
+    TOGGLE_TUTORIAL,
     startTutorial,
+    initTutorial,
     setupTutorial,
     updateTutorial,
     disableTutorial,
-    resetTutorial
+    resetTutorial,
+    closeTutorial,
+    toggleTutorial
 } = require('../tutorial');
 
 describe('Test the tutorial actions', () => {
@@ -29,14 +35,34 @@ describe('Test the tutorial actions', () => {
         expect(retval.type).toBe(START_TUTORIAL);
     });
 
-    it('setupTutorial', () => {
+    it('initTutorial', () => {
+        const id = 'id';
         const steps = 'steps';
         const style = 'style';
         const checkbox = 'checkbox';
         const defaultStep = 'defaultStep';
-        const retval = setupTutorial(steps, style, checkbox, defaultStep);
+        const presetList = 'presetList';
+        const retval = initTutorial(id, steps, style, checkbox, defaultStep, presetList);
+        expect(retval).toExist();
+        expect(retval.type).toBe(INIT_TUTORIAL);
+        expect(retval.id).toBe(id);
+        expect(retval.steps).toBe(steps);
+        expect(retval.style).toBe(style);
+        expect(retval.checkbox).toBe(checkbox);
+        expect(retval.defaultStep).toBe(defaultStep);
+        expect(retval.presetList).toBe(presetList);
+    });
+
+    it('setupTutorial', () => {
+        const id = 'id';
+        const steps = 'steps';
+        const style = 'style';
+        const checkbox = 'checkbox';
+        const defaultStep = 'defaultStep';
+        const retval = setupTutorial(id, steps, style, checkbox, defaultStep);
         expect(retval).toExist();
         expect(retval.type).toBe(SETUP_TUTORIAL);
+        expect(retval.id).toBe(id);
         expect(retval.steps).toBe(steps);
         expect(retval.style).toBe(style);
         expect(retval.checkbox).toBe(checkbox);
@@ -46,13 +72,11 @@ describe('Test the tutorial actions', () => {
     it('updateTutorial', () => {
         const tour = 'tour';
         const steps = 'steps';
-        const error = 'error';
-        const retval = updateTutorial(tour, steps, error);
+        const retval = updateTutorial(tour, steps);
         expect(retval).toExist();
         expect(retval.type).toBe(UPDATE_TUTORIAL);
         expect(retval.tour).toBe(tour);
         expect(retval.steps).toBe(steps);
-        expect(retval.error).toBe(error);
     });
 
     it('disableTutorial', () => {
@@ -65,6 +89,18 @@ describe('Test the tutorial actions', () => {
         const retval = resetTutorial();
         expect(retval).toExist();
         expect(retval.type).toBe(RESET_TUTORIAL);
+    });
+
+    it('closeTutorial', () => {
+        const retval = closeTutorial();
+        expect(retval).toExist();
+        expect(retval.type).toBe(CLOSE_TUTORIAL);
+    });
+
+    it('toggleTutorial', () => {
+        const retval = toggleTutorial();
+        expect(retval).toExist();
+        expect(retval.type).toBe(TOGGLE_TUTORIAL);
     });
 
 });

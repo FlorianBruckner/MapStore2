@@ -145,20 +145,13 @@ describe('QueryBuilder', () => {
 
     it('creates the QueryBuilder component in error state', () => {
 
-        let attributeFilterActions = {
-            onLoadFeatureTypeConfig: () => {}
-        };
-        let spy = expect.spyOn(attributeFilterActions, 'onLoadFeatureTypeConfig');
-
         const querybuilder = ReactDOM.render(<QueryBuilder
             featureTypeError={"true"}
             featureTypeErrorText={"bla bla"}
-            attributeFilterActions={attributeFilterActions}
             featureTypeConfigUrl={"randomurl"} />,
         document.getElementById("container"));
 
         expect(querybuilder).toExist();
-        expect(spy.calls.length).toEqual(1);
     });
 
     it('creates the QueryBuilder component with empty filter support', () => {
@@ -204,7 +197,7 @@ describe('QueryBuilder', () => {
                 attributes={attributes}
                 groupFields={groupFields}
                 groupLevels={groupLevels}
-                allowEmptyFilter={true}
+                allowEmptyFilter
             />,
             document.getElementById("container")
         );

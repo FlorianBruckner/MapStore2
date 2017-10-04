@@ -79,6 +79,15 @@ We suggest to use one of the following:
    - Babel snippets
    - Emmet
 
+### Redux Dev Tools
+When you are running the application locally using `npm start` you can debug the application with [redux dev tools](https://github.com/gaearon/redux-devtools) using the flag ?debug=true
+```
+http://localhost:8081/?debug=true#/?_k=c51bb5
+```
+It also integrates with the [browser's extension](https://github.com/zalmoxisus/redux-devtools-extension), if installed.
+
+This way you can monitor the application's state evolution and the action triggered by your application.
+
 ## Backend services debugging
 TBD
 
@@ -110,11 +119,13 @@ Maven is the main tool for building and deploying a complete application. It tak
 To create the final war, you have several options:
  * full build, including submodules and frontend (e.g. GeoStore)
 
-`./build.sh`
+ `./build.sh [version_identifier]`
+
+ Where version_identifier is an optional identifier of the generated war that will be shown in the settings panel of the application.
 
  * fast build (will use the last compiled version of submodules and compiled frontend)
 
-`mvn clean install`
+`mvn clean install` -Dmapstore2.version=[version_identifier]
 
 ### Changelog generation
 
@@ -129,22 +140,22 @@ sudo gem install github_changelog_generator
 ```
 
 **Configure**
- * [Generate a github token](https://github.com/settings/tokens/new?description=GitHub%20Changelog%20Generator%20token) and place it in your .bashrc this: 
+ * [Generate a github token](https://github.com/settings/tokens/new?description=GitHub%20Changelog%20Generator%20token) and place it in your .bashrc this:
 ```
- export CHANGELOG_GITHUB_TOKEN="«your-40-digit-github-token»" 
+ export CHANGELOG_GITHUB_TOKEN="«your-40-digit-github-token»"
 ```
 as an alternative use --token
 
 * cd to MapStore2
-* edit `.github_changelog_generator` file : 
-   * set `since-tag ` (the first tag you want to exclude) 
+* edit `.github_changelog_generator` file :
+   * set `since-tag ` (the first tag you want to exclude)
    * if you are creating the changelog before creating the tag set `future-release`=YYYY.NN.mm with the release tag
 
 For example the `.github_changelog_generator` file for the changes between 2017.02.00 and 2017.03.00 release can look like the following:
-    
+
     future-release=2017.03.00
     since-tag=2017.01.00
-   
+
 **Run**
 ```
 github_changelog_generator
