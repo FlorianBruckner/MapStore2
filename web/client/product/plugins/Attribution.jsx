@@ -7,7 +7,7 @@ const PropTypes = require('prop-types');
  * LICENSE file in the root directory of this source tree.
  */
 const React = require('react');
-const src = require("./attribution/geosolutions-brand.png");
+const src = require("./attribution/logo-acg.png");
 const assign = require('object-assign');
 
 class Attribution extends React.Component {
@@ -38,7 +38,7 @@ module.exports = {
     AttributionPlugin: assign(Attribution, {
         OmniBar: {
             position: 1,
-            tool: () => <div className="navbar-header"><img className="customer-logo" src={src} height="36" /></div>,
+            tool: () => <div className="navbar-header"><img className="customer-logo" src={src} height="52" /></div>,
             priority: 1
         }
     })

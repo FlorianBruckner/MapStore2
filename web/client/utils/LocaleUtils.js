@@ -18,27 +18,27 @@ const es = require('react-intl/locale-data/es');
 addLocaleData([...en, ...it, ...fr, ...de, ...es]);
 
 let supportedLocales = {
-    "it": {
+/*    "it": {
         code: "it-IT",
         description: "Italiano"
-    },
+    },*/
     "en": {
         code: "en-US",
         description: "English"
     },
-    "fr": {
+/*    "fr": {
         code: "fr-FR",
         description: "Français"
-    },
+    },*/
     "de": {
         code: "de-DE",
         description: "Deutsch"
-    },
+    }/*,
 
     "es": {
         code: "es-ES",
         description: "Español"
-    }
+    }*/
 };
 
 const LocaleUtils = {

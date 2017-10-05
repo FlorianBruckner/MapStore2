@@ -18,7 +18,7 @@ var {MAP_TYPE_CHANGED} = require('../actions/maptype');
  *  mapType: "leaflet"
  * }
  */
-function maptype(state = {mapType: "leaflet"}, action) {
+function maptype(state = {mapType: "openlayers"}, action) {
     switch (action.type) {
     case MAP_TYPE_CHANGED:
         return {mapType: action.mapType};

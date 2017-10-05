@@ -151,7 +151,7 @@
                     }
                 }
             },
-            "MadeWithLove", {
+            {
                 "name": "Locate",
                 "override": {
                     "Toolbar": {
@@ -211,7 +211,7 @@
                         "wmts": "https://demo.geo-solutions.it/geoserver/gwc/service/wmts"
                     }
                 }
-            }, "About", "MousePosition", {
+            }, "MousePosition", {
                 "name": "Search",
                 "cfg": {
                     "withToggle": ["max-width: 768px", "min-width: 768px"]
@@ -230,8 +230,12 @@
                     "id": "identifyBar"
                 },
                 "isDefault": false
-            },
-            "ScaleBox", {
+            }, {
+              "name": "ScaleBox",
+              "cfg": {
+                "scales": ["600000000", "300000000", "150000000", "75000000", "40000000", "20000000", "10000000", "5000000", "2500000", "1000000", "500000", "250000", "150000", "75000", "40000", "20000", "10000", "5000", "2000", "1000", "500"]                
+              } 
+            }, {
               "name":"ZoomAll",
               "override": {
                 "Toolbar": {
@@ -266,7 +270,7 @@
                 "declineUrl" : "http://www.google.com"
                 }
             },
-            "OmniBar", "Login", "Save", "SaveAs", "BurgerMenu", "Expander", "Undo", "Redo", "FullScreen", "GlobeViewSwitcher", "SearchServicesConfig"
+            "OmniBar", "Login", "Save", "SaveAs", "BurgerMenu", "Expander", "Undo", "Redo", "FullScreen", "SearchServicesConfig"
         ],
         "embedded": [{
                 "name": "Map",
@@ -362,7 +366,14 @@
                 "className": "navbar shadow navbar-home"
             }
         }, "ManagerMenu", "Login", "Language", "Attribution", "ScrollTop", "Notifications"],
-        "maps": ["Header", "Fork", "MapSearch", "HomeDescription", "MapType", "ThemeSwitcher",  "GridContainer", "CreateNewMap", "Maps", "Examples", "Footer", {
+        "maps": [
+        {
+          "name": "Header",
+          "cfg": {
+            "style": { "background-image": "url('https://sdimd-free.austrocontrol.at/resources/images/acg-banner.png')"}
+          }
+        }, "GridContainer", "CreateNewMap", "Maps", "Footer", 
+        {
           "name": "Cookie",
           "cfg": {
             "externalCookieUrl" : "",

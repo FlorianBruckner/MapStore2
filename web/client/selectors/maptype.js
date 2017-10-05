@@ -12,7 +12,7 @@
  * @param  {object} state the state
  * @return {string}       the maptype in the state
  */
-const mapTypeSelector = (state) => state && state.maptype && state.maptype.mapType || 'leaflet';
+const mapTypeSelector = (state) => state && state.maptype && state.maptype.mapType || 'openlayers';
 
 /**
  * Check if the mapType is cesium
