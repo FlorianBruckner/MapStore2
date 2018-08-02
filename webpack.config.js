@@ -5,7 +5,7 @@ const extractThemesPlugin = require('./themes.js').extractThemesPlugin;
 
 module.exports = require('./buildConfig')(
     {
-        "mapstore2": path.join(__dirname, "web", "client", "product", "app"),
+        "mapstore2": ['babel-polyfill',path.join(__dirname, "web", "client", "product", "app")],
         "embedded": path.join(__dirname, "web", "client", "product", "embedded"),
         "ms2-api": path.join(__dirname, "web", "client", "product", "api")
     },
